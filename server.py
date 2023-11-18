@@ -1,11 +1,10 @@
 import socket
 import threading
+from requests import Request, parse
 
 PORT = 8080
 SERVER = ""
 ADDR = (SERVER, PORT)
-HTTP_FORMAT = 'ascii'
-OBJ_FORMAT = 'gzip'
 BUFFER = 2 << 11
 ACCEPT_LENGTH = 2 << 13
 
@@ -19,7 +18,8 @@ def handle_client(conn, addr):
 		try:
 			req = conn.recv(ACCEPT_LENGTH)
 			if req:
-				print(req.decode(HTTP_FORMAT))  # TODO: Replace this line
+				r = parse(req.decode(Request.ASCII))
+				print(r)
 		except:
 			conn.close()
 			print(f"[INFO] Client with address {addr} has terminated a connection.")
