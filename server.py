@@ -3,7 +3,7 @@ import threading
 from requests import Request, parse
 
 PORT = 8080
-SERVER = ""
+SERVER =  socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 BUFFER = 2 << 11
 ACCEPT_LENGTH = 2 << 13
