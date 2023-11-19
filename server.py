@@ -20,7 +20,7 @@ def handle_client(conn, addr):
 			if req:
 				r = parse(req.decode(Request.ASCII))
 				print(r)
-		except:
+		except (ConnectionError, ConnectionResetError):
 			conn.close()
 			print(f"[INFO] Client with address {addr} has terminated a connection.")
 			break

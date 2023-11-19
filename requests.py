@@ -17,7 +17,7 @@ def get_http_command_from_command_line(line):
 	elif line[0:3].upper() == Request.PUT_COMMAND:
 		return Request.PUT
 	else:
-		raise ValueError("Invalid command line for HTTP command retrieval")
+		raise ValueError("Invalid command line for HTTP command retrieval, line is " + line)
 
 
 def get_path_from_command_line(line):
@@ -123,6 +123,8 @@ def parse_http_line(line: str, obj):
 			obj.ifModifiedSince = (datetime.strptime(date.strip(), Request.DATE_FORMAT), int(length))
 		else:
 			obj.ifModifiedSince = (datetime.strptime(contents.strip(), Request.DATE_FORMAT), 0)
+	elif keyword == "if-none-match":
+		obj.ifNoneMatch = {x.strip() for x in contents.split(',')}
 	elif keyword == "host":
 		pass
 	else:
@@ -250,6 +252,7 @@ class Request:
 		self.secGPC = None
 		self.date = None
 		self.ifModifiedSince = None
+		self.ifNoneMatch = set()
 
 	def set_path(self, new_path):
 		self.path = new_path
@@ -353,6 +356,13 @@ class Request:
 		else:
 			self.ifModifiedSince = (datetime.strptime(date_string, Request.DATE_FORMAT), length)
 
+	def add_if_none_match(self, etag):
+		self.ifNoneMatch.add(etag)
+
+	def remove_if_none_match(self, etag):
+		if etag in self.ifNoneMatch:
+			self.ifNoneMatch.remove(etag)
+
 	def enable_dnt(self):
 		self.dnt = 1
 
@@ -421,7 +431,7 @@ class Request:
 		return _parse_param_to_header_field("Upgrade-Insecure-Requests", str(self.upgradeInsecureRequests))
 
 	def get_sec_gpc_line(self):
-		return _parse_param_to_header_field("Sec-GPC", self.secGPC)
+		return _parse_param_to_header_field("Sec-GPC", str(self.secGPC))
 
 	def __str__(self):
 		# 1 - build base request
@@ -470,6 +480,8 @@ class Request:
 			request.append(self.get_upgrade_insecure_requests_line())
 		if self.secGPC:
 			request.append(self.get_sec_gpc_line())
+		if self.ifNoneMatch:
+			request.append(_parse_param_to_header_field("If-None-Match", self.ifNoneMatch))
 		# 5 - add rarely used fields
 		if self.date:
 			request.append(_parse_param_to_header_field("Date", self.date.strftime(Request.DATE_FORMAT)))
