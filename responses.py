@@ -1,5 +1,5 @@
 from datetime import datetime
-from urllib.parse import urlparse
+
 
 def get_path_from_command_line(line):
     if len(line) < 4:
@@ -75,13 +75,13 @@ def parse_http_line(line: str, obj):
         else:
             obj.contentType = contents.strip()
     elif keyword == "access-control-allow-origin":
-        obj.accessControlAllowOrigin = {x.strip() for x in charset.split(',')}
+        obj.accessControlAllowOrigin = {x.strip() for x in contents.split(',')}
     elif keyword == "access-control-allow-methods":
-        obj.accessControlAllowMethods = {x.strip() for x in charset.split(',')}
+        obj.accessControlAllowMethods = {x.strip() for x in contents.split(',')}
     elif keyword == "content-language":
         obj.contentLanguage = {x.strip() for x in contents.split(',')}
     elif keyword == "pragma":
-        obj.pragma = {x.strip() for x in charset.split(',')}
+        obj.pragma = {x.strip() for x in contents.split(',')}
     elif keyword == "www-authenticate":
         res = contents.split(';', 1)
         if len(res) > 1:
@@ -246,8 +246,8 @@ class Response:
         self.etag = None
         self.contentLength = None
         self.contentType = None
-        self.contentLanguage = set()
-        self.contentCharset = set()
+        self.contentLanguage = {}
+        self.contentCharset = {}
         self.contentEncoding = set()
         self.cacheControl = {}
         self.proxyConnection = set()
@@ -402,7 +402,7 @@ class Response:
 
     def remove_authentication(self, field):
         if field in self.authentications:
-            self.authentications.remove(field)
+            self.authentications.pop(field)
 
     def get_http_version(self):
         return f"HTTP/{str(self.httpVer)}"
