@@ -62,9 +62,10 @@ def handle_client(conn, addr):
 			req = conn.recv(ACCEPT_LENGTH)
 			if req:
 				r = parse_request(req.decode(Request.ASCII))
-				connect_to_external_server(r)
+				header_obj, obj = connect_to_external_server(r)
+				conn.send(obj)
 				conn.close()
-				print(f"[INFO] Client with address {addr} has terminated a connection.")
+				print(f"[INFO] Client with address {addr} has terminated a connection.\n{header_obj}")
 				break
 		except (ConnectionError, ConnectionResetError):
 			conn.close()
