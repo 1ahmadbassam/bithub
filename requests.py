@@ -1,6 +1,6 @@
 from datetime import datetime
 from urllib.parse import urlparse
-
+import validators
 
 # from requests import Request
 
@@ -151,46 +151,47 @@ def _get_host(path):
 
 
 def _parse_param_to_header_field(name, params, var=None):
-    if not params:
-        return None
-    if params and isinstance(params, str):
-        return f"{str(name)}:{Request.WHITESPACE}{str(params)}{Request.DELIMITER}"
-    field = [str(name), ":", Request.WHITESPACE]
-    if params and isinstance(params, set):
-        for x in params:
-            field.append(x)
-            field.append(',')
-            field.append(Request.WHITESPACE)
-        field.pop()
-        field.pop()
-    elif params and isinstance(params, dict):
-        if var:
-            for x, sp in params.items():
-                if sp:
-                    field.append(f"{str(x)};{str(var)}={str(sp)}")
-                    field.append(',')
-                    field.append(Request.WHITESPACE)
-                else:
-                    field.append(str(x))
-                    field.append(',')
-                    field.append(Request.WHITESPACE)
-        else:
-            for x, sp in params.items():
-                field.append(f"{str(x)}={str(sp)}")
-                field.append(',')
-                field.append(Request.WHITESPACE)
-        field.pop()
-        field.pop()
-    elif params and isinstance(params, tuple):
-        field.append(str(params[0]))
-        if params[1]:
-            field.append(';')
-            field.append(Request.WHITESPACE)
-            field.append(f"{str(var)}={str(params[1])}")
-    else:
-        field.append(str(params))
-    field.append(Request.DELIMITER)
-    return ''.join(field)
+	if not params:
+		return None
+	if params and isinstance(params, str):
+		return f"{str(name)}:{Request.WHITESPACE}{str(params)}{Request.DELIMITER}"
+	field = [str(name), ":", Request.WHITESPACE]
+	if params and isinstance(params, set):
+		for x in params:
+			field.append(x)
+			field.append(',')
+			field.append(Request.WHITESPACE)
+		field.pop()
+		field.pop()
+	elif params and isinstance(params, dict):
+		if var:
+			for x, sp in params.items():
+				if sp:
+					field.append(f"{str(x)};{str(var)}={str(sp)}")
+					field.append(',')
+					field.append(Request.WHITESPACE)
+				else:
+					field.append(str(x))
+					field.append(',')
+					field.append(Request.WHITESPACE)
+		else:
+			for x, sp in params.items():
+				field.append(f"{str(x)}={str(sp)}")
+				field.append(',')
+				field.append(Request.WHITESPACE)
+		field.pop()
+		field.pop()
+	elif params and isinstance(params, tuple):
+		field.append(str(params[0]))
+		if params[1]:
+			field.append(';')
+			field.append(Request.WHITESPACE)
+			field.append(f"{str(var)}={str(params[1])}")
+	else:
+		field.append(str(params))
+	field.append(Request.DELIMITER)
+	return ''.join(field)
+
 
 class Request:
 	GET = 0
@@ -486,3 +487,13 @@ class Request:
 			request.append(_parse_param_to_header_field("Date", self.date.strftime(Request.DATE_FORMAT)))
 		request.append(Request.DELIMITER)
 		return ''.join(request)
+
+	def get_filename_of_requested_object(self):
+		if self.path[-1] == '/':
+			return "index.html"
+		else:
+			rev_path = self.path[::-1]
+			filename = rev_path.split('/', 1)[0]
+			if validators.url("http://" + filename):
+				return "index.html"
+			return filename[::-1]

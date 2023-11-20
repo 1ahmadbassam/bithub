@@ -69,7 +69,7 @@ def parse_http_line(line: str, obj):
         res = contents.split(';', 1)
         if len(res) > 1:
             [content, charset] = res
-            charset = charset.split("=")[1:]
+            charset = charset.split("=")[1:][0]
             obj.contentType = content.strip()
             obj.contentCharset = {x.strip() for x in charset.split(',')}
         else:
@@ -82,6 +82,10 @@ def parse_http_line(line: str, obj):
         obj.contentLanguage = {x.strip() for x in contents.split(',')}
     elif keyword == "pragma":
         obj.pragma = {x.strip() for x in contents.split(',')}
+    elif keyword == "x-frame-options":
+        obj.xFrameOptions = contents.strip()
+    elif keyword == "x-xss-protection":
+        obj.xXSSProtection = contents.strip()
     elif keyword == "www-authenticate":
         res = contents.split(';', 1)
         if len(res) > 1:
@@ -91,6 +95,8 @@ def parse_http_line(line: str, obj):
                 x.strip() for x in params.split(',')}
         else:
             obj.authentications[contents.strip()] = None
+    elif keyword == "upgrade":
+        obj.upgrade = {x.strip() for x in contents.split(',')}
     elif keyword == "location":
         obj.location = contents.strip()
     elif keyword == "date":
@@ -241,6 +247,7 @@ class Response:
         self.httpVer = http_ver
         self.server = None
         self.connection = {"close"}
+        self.upgrade = set()
         self.keepAlive = {}
         self.acceptRanges = set()
         self.etag = None
@@ -260,6 +267,8 @@ class Response:
         self.pragma = set()
         self.authentications = {}
         self.location = None
+        self.xFrameOptions = None
+        self.xXSSProtection = None
 
     def set_server(self, new_server):
         self.server = new_server
@@ -404,6 +413,27 @@ class Response:
         if field in self.authentications:
             self.authentications.pop(field)
 
+    def set_xframe_options(self, option):
+        if option.lower().strip() == "deny":
+            self.xFrameOptions = None
+        else:
+            self.xFrameOptions = option
+
+    def set_x_xss_protection(self, value):
+        self.xXSSProtection = value
+
+    def set_x_xss_protection_mode_block(self):
+        self.xXSSProtection = "1; mode=block"
+
+    def set_x_xss_protection_report_uri(self, uri):
+        self.xXSSProtection = f"1; report={uri}"
+
+    def add_upgrade_field (self, field):
+        self.upgrade.add(field)
+
+    def remove_upgrade_field(self, field):
+        self.upgrade.remove(field)
+
     def get_http_version(self):
         return f"HTTP/{str(self.httpVer)}"
 
@@ -415,6 +445,7 @@ class Response:
 
     def get_connection_line(self):
         return _parse_param_to_header_field("Connection", self.connection)
+
 
     def get_proxy_connection_line(self):
         if self.proxyConnection:
@@ -479,6 +510,15 @@ class Response:
     def get_location_line(self):
         return _parse_param_to_header_field("Location", self.location)
 
+    def get_xframe_options_line(self):
+        return _parse_param_to_header_field("X-Frame-Options", self.xFrameOptions)
+
+    def get_x_xss_protection_line(self):
+        return _parse_param_to_header_field("X-XSS-Protection", self.xXSSProtection)
+
+    def get_upgrade_line(self):
+        return _parse_param_to_header_field("Upgrade", self.upgrade)
+
     def __str__(self):
         response = [self.get_http_response_line(), self.get_server_line(),
                     self.get_connection_line()]
@@ -520,5 +560,11 @@ class Response:
             response.append(self.get_authentication_line())
         if self.location:
             response.append(self.get_location_line())
+        if self.xFrameOptions:
+            response.append(self.get_xframe_options_line())
+        if self.xXSSProtection:
+            response.append(self.get_x_xss_protection_line())
+        if self.upgrade:
+            response.append(self.get_upgrade_line())
         response.append(Response.DELIMITER)
         return ''.join(response)
