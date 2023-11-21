@@ -2,6 +2,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from dataclasses import dataclass
 
+BUFFER = 2 << 11
 DELIMITER = "\r\n"
 WHITESPACE = ' '
 
@@ -43,6 +44,12 @@ def get_host(url):
 
 
 def get_datetime(date_string: str):
+    if not date_string:
+        return None
+    return datetime.strptime(date_string, DATE_FORMAT)
+
+
+def get_local_datetime(date_string: str):
     if not date_string:
         return None
     return datetime.strptime(date_string, DATE_FORMAT)

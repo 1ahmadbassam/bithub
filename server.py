@@ -20,7 +20,7 @@ server.bind(ADDR)
 
 
 def recv_all(sock):
-    buf_size = 4096
+    buf_size = 2 << 11
     data = b''
     while True:
         part = sock.recv(buf_size)
@@ -64,7 +64,7 @@ def connect_to_external_server(req):
 def handle_cache_obj(req: Request, resp: Response, obj: bytes):
     filename = req.get_obj_filename()
     if resp.status_code == "200":
-        caching.add_to_cache(caching.get_path_from_url(req.path, filename), resp.content_length, filename, obj)
+        caching.add_to_cache(caching.get_path_from_url(req.path, filename), int(resp.content_length), filename, obj)
     else:
         print("[INFO] Cannot cache object for response with status " + str(resp.status_code) + " "
               + str(resp.status_phrase) + ".")
@@ -78,7 +78,7 @@ def handle_client(conn, addr):
             req_bytes = conn.recv(ACCEPT_LENGTH)
             if req_bytes:
                 req = parse_request(req_bytes.decode(http.Charset.ASCII))
-                print(req)
+                print(str(req).encode(http.Charset.ASCII))
                 resp, obj = connect_to_external_server(req)
                 handle_cache_obj(req, resp, obj)
                 conn.send(obj)

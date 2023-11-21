@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-import validators
-
 
 from httplib import http
 
@@ -40,7 +38,7 @@ def __parse_http_line(line: str, request_obj):
             [param, value] = x.split('=', 1)
             request_obj.cache_control[param.strip()] = value.strip()
     elif keyword == "date":
-        request_obj.set_date(http.get_datetime(contents.split()))
+        request_obj.set_date(contents.strip())
     elif keyword == "if_modified_since":
         res = contents.split(';', 1)
         if len(res) > 1:
@@ -48,7 +46,7 @@ def __parse_http_line(line: str, request_obj):
             length = length.split("=")[1]
             request_obj.if_modified_since = (http.get_datetime(date.strip()), int(length))
         else:
-            request_obj.if_modified_since = (http.get_datetime(res.strip()), 0)
+            request_obj.if_modified_since = (http.get_datetime(res[0].strip()), 0)
     else:
         try:
             class_var = getattr(request_obj, keyword)
@@ -215,9 +213,10 @@ class Request:
         else:
             rev_path = self.path[::-1]
             filename = rev_path.split('/', 1)[0]
-            if validators.url("http://" + filename):
+            filename = filename[::-1]
+            if "http://" + filename == self.path:  # not an object, but a domain
                 return "index.html"
-            return filename[::-1]
+            return filename
 
     def _line_host(self):
         return http.format_param("Host", self.host)

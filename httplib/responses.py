@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from httplib import http
 
 
@@ -9,103 +7,75 @@ def parse_response_line(line: str) -> tuple:
     return status_code, status_phrase, http_ver
 
 
-def __parse_http_line(line: str, obj):
-    if not line or not obj:
+def __parse_http_line(line: str, response_obj):
+    if not line or not response_obj:
         return
     keyword, contents = line.removesuffix(http.DELIMITER).split(':', 1)
-    keyword = keyword.lower().strip()
-    if keyword == "connection":
-        obj.connection = {x.strip() for x in contents.split(',')}
-    elif keyword == "proxy-connection":
-        obj.proxyConnection = {x.strip() for x in contents.split(',')}
-    elif keyword == "keep-alive":
+    keyword = keyword.lower().strip().replace('-', '_')
+    if keyword == "keep_alive":
         if ',' not in contents:
-            obj.keep_alive["timeout"] = contents.strip()
+            response_obj.keep_alive["timeout"] = contents.strip()
         else:
             for x in contents.split(','):
                 [param, value] = x.split('=', 1)
-                obj.keep_alive[param.strip()] = value.strip()
-    elif keyword == "server":
-        obj.server = contents.strip()
-    elif keyword == "accept":
-        obj.accept = {x.strip() for x in contents.split(',')}
-    elif keyword == "vary":
-        obj.vary = {x.strip() for x in contents.split(',')}
-    elif keyword == "content-encoding":
-        obj.contentEncoding = {x.strip() for x in contents.split(',')}
-    elif keyword == "cache-control":
+                response_obj.keep_alive[param.strip()] = value.strip()
+    elif keyword == "cache_control":
         for x in contents.split(','):
             [param, value] = x.split('=', 1)
-            obj.cacheControl[param.strip()] = value.strip()
-    elif keyword == "accept-ranges":
-        obj.acceptRanges = {x.strip() for x in contents.split(',')}
-    elif keyword == "etag":
-        obj.etag = contents.strip()
-    elif keyword == "content-length":
-        obj.contentLength = int(contents.strip())
-    elif keyword == "content-type":
+            response_obj.cache_control[param.strip()] = value.strip()
+    elif keyword == "date":
+        response_obj.set_date(contents.strip())
+    elif keyword == "content_type":
         res = contents.split(';', 1)
         if len(res) > 1:
             [content, charset] = res
             charset = charset.split("=")[1:][0]
-            obj.contentType = content.strip()
-            obj.contentCharset = {x.strip() for x in charset.split(',')}
+            response_obj.content_type = content.strip()
+            response_obj.content_charset = {x.strip() for x in charset.split(',')}
         else:
-            obj.contentType = contents.strip()
-    elif keyword == "access-control-allow-origin":
-        obj.accessControlAllowOrigin = {x.strip() for x in contents.split(',')}
-    elif keyword == "access-control-allow-methods":
-        obj.accessControlAllowMethods = {x.strip() for x in contents.split(',')}
-    elif keyword == "content-language":
-        obj.contentLanguage = {x.strip() for x in contents.split(',')}
-    elif keyword == "pragma":
-        obj.pragma = {x.strip() for x in contents.split(',')}
-    elif keyword == "x-frame-options":
-        obj.xFrameOptions = contents.strip()
-    elif keyword == "x-xss-protection":
-        obj.xXSSProtection = contents.strip()
-    elif keyword == "www-authenticate":
-        res = contents.split(';', 1)
-        if len(res) > 1:
-            [auth, params] = res
-            params = params.split("=")[1:]
-            obj.authentications[auth.strip()] = {
-                x.strip() for x in params.split(',')}
-        else:
-            obj.authentications[contents.strip()] = None
-    elif keyword == "upgrade":
-        obj.upgrade = {x.strip() for x in contents.split(',')}
-    elif keyword == "location":
-        obj.location = contents.strip()
-    elif keyword == "date":
-        obj.date = datetime.strptime(contents.strip(), http.DATE_FORMAT)
-    elif keyword == "last-modified":
+            response_obj.contentType = contents.strip()
+    elif keyword == "last_modified":
         res = contents.split(';', 1)
         if len(res) > 1:
             [date, length] = res
             length = length.split("=")[1]
-            obj.lastModified = (datetime.strptime(date.strip(), http.DATE_FORMAT), int(length))
+            response_obj.last_modified = (http.get_datetime(date.strip()), int(length))
         else:
-            obj.lastModified = (datetime.strptime(contents.strip(), http.DATE_FORMAT), 0)
+            response_obj.last_modified = (http.get_datetime(res[0].strip()), 0)
+    elif keyword == "www_authenticate":
+        res = contents.split(';', 1)
+        if len(res) > 1:
+            [auth, params] = res
+            params = params.split("=")[1:]
+            response_obj.www_authenticate[auth.strip()] = {
+                x.strip() for x in params.split(',')}
+        else:
+            response_obj.www_authenticate[contents.strip()] = None
     else:
-        raise ValueError("Unknown HTTP header field for line " + line)
+        try:
+            class_var = getattr(response_obj, keyword)
+            if isinstance(class_var, set):
+                setattr(response_obj, keyword, {x.strip() for x in contents.split(',')})
+            elif isinstance(class_var, dict):
+                return
+            else:
+                setattr(response_obj, keyword, contents.strip())
+        except AttributeError:
+            raise ValueError(f"[ERR] Unknown HTTP header field for keyword {keyword}.")
 
 
-def parse(res: str):
-    if not res:
-        return None
-    if isinstance(res, bytes):
-        res = res.decode(http.Charset.ASCII)
-    res = res.split(http.DELIMITER)
-    res_status, res_message, http_ver = parse_response_line(res[0])
+def parse(response: str):
+    if not response:
+        raise ValueError("[ERR] Empty response to parse.")
+    response = response.split(http.DELIMITER)
+    res_status, res_message, http_ver = parse_response_line(response[0])
     if not res_status or not res_message:
         return None
     obj = Response(res_status, res_message, http_ver)
 
-    for line in res[1:]:
+    for line in response[1:]:
         __parse_http_line(line, obj)
     return obj
-
 
 
 class Response:
@@ -124,7 +94,7 @@ class Response:
         self.content_length = None
         self.content_type = None
         self.content_language = {}
-        self.content_charset = {} ####################################
+        self.content_charset = {}
         self.content_encoding = set()
         # ------cache-related response fields------
         self.cache_control = {}
@@ -138,7 +108,7 @@ class Response:
         self.upgrade = set()
         self.vary = set()
         self.pragma = set()
-        self.authentications = {}
+        self.www_authenticate = {}
         self.location = None
         self.x_xss_protection = None
         self.x_frame_options = None
@@ -166,7 +136,7 @@ class Response:
     # ------cache------
     def set_cache_control_max_age(self, duration: int):
         self.cache_control["max-age"] = duration
-    
+
     def set_cache_control_field(self, field: str, param: str):
         self.cache_control[field] = param
 
@@ -220,9 +190,6 @@ class Response:
         self.proxy_connection.add("upgrade")
 
     # ------other fields------
-    def set_x_xss_protection(self, value):
-        self.x_xss_protection = value
-
     def set_x_xss_protection_mode_block(self):
         self.x_xss_protection = "1; mode=block"
 
@@ -235,11 +202,15 @@ class Response:
         else:
             self.x_frame_options = option
 
-    def _line_http_version(self):
+    # ------header line-getters------
+
+    def get_http_str(self):
         return f"HTTP/{str(self.http_ver)}"
 
-    def _line_http_response(self):
-        return f"{self._line_http_version()} {self.status_code} {self.status_phrase}{http.DELIMITER}"
+    def get_response_statement(self):
+        return (f"{self.get_http_str()}{http.WHITESPACE}"
+                f"{self.status_code}{http.WHITESPACE}"
+                f"{self.status_phrase}{http.DELIMITER}")
 
     def _line_server(self):
         return http.format_param("Server", self.server)
@@ -248,10 +219,7 @@ class Response:
         return http.format_param("Connection", self.connection)
 
     def _line_proxy_connection(self):
-        if self.proxy_connection:
-            return http.format_param("Proxy-Connection", self.proxy_connection)
-        else:
-            return None
+        return http.format_param("Proxy-Connection", self.proxy_connection)
 
     def _line_cache_control(self):
         return http.format_param("Cache-Control", self.cache_control)
@@ -282,9 +250,9 @@ class Response:
 
     def _line_last_modified(self):
         return http.format_param("Last-Modified",
-                                            (self.last_modified[0].strftime(http.DATE_FORMAT),
-                                             self.last_modified[1] if self.last_modified[1] > 0 else None),
-                                            "length")
+                                 (self.last_modified[0].strftime(http.DATE_FORMAT),
+                                  self.last_modified[1] if self.last_modified[1] > 0 else None),
+                                 "length")
 
     def _line_vary(self):
         return http.format_param("Vary", self.vary)
@@ -304,8 +272,8 @@ class Response:
     def _line_keep_alive_line(self):
         return http.format_param("Keep-Alive", self.keep_alive)
 
-    def _line_authentications(self):
-        return http.format_param("Authentication", self.authentications)
+    def _line_www_authenticate(self):
+        return http.format_param("Authentication", self.www_authenticate)
 
     def _line_location(self):
         return http.format_param("Location", self.location)
@@ -320,7 +288,7 @@ class Response:
         return http.format_param("Upgrade", self.upgrade)
 
     def __str__(self):
-        response = [self._line_http_response(), self._line_server(), self._line_connection()]
+        response = [self.get_response_statement()]
         for func in [x for x in dir(self) if x.startswith("_line")]:
             line = getattr(self, func)()
             if line:
