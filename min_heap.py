@@ -7,27 +7,17 @@ class Pair:
     def __str__(self):
         return f"Key: {self.key}, Value: {self.value}"
 
-
-# Function to return the position of 
-# parent for the node currently 
-# at pos
+# Function to return the position of parent for the node currently at pos
 def _parent(pos):
     return pos // 2
 
-
-# Function to return the position of 
-# the left child for the node currently 
-# at pos 
+# Function to return the position of the left child for the node currently at pos 
 def _left_child(pos):
     return 2 * pos
 
-
-# Function to return the position of
-# the right child for the node currently
-# at pos 
+# Function to return the position of the right child for the node currently at pos 
 def _right_child(pos):
     return (2 * pos) + 1
-
 
 class MinHeap:
 
@@ -43,27 +33,23 @@ class MinHeap:
     # Function to heapify the node at pos
     def heapify(self, pos):
 
-        # If the node is a non-leaf node and greater 
-        # than any of its child 
+        # If the node is a non-leaf node and greater than any of its child 
         if not self.is_leaf(pos) and self.heap[pos]:
             if ((self.heap[_left_child(pos)] and self.heap[pos].key > self.heap[_left_child(pos)].key)
                     or (self.heap[_right_child(pos)].key and self.heap[pos].key > self.heap[_right_child(pos)].key)):
 
-                # Swap with the left child and heapify 
-                # the left child 
+                # Swap with the left child and heapify the left child 
                 if self.heap[_left_child(pos)].key < self.heap[_right_child(pos)].key:
                     self.swap(pos, _left_child(pos))
                     return self.heapify(_left_child(pos))
 
-                # Swap with the right child and heapify
-                # the right child 
+                # Swap with the right child and heapify the right child 
                 else:
                     self.swap(pos, _right_child(pos))
                     return self.heapify(_right_child(pos))
         return pos
 
-    # Function that returns true if the passed 
-    # node is a leaf node 
+    # Function that returns true if the passed node is a leaf node 
     def is_leaf(self, pos):
         return pos * 2 > self.size
 
@@ -89,15 +75,13 @@ class MinHeap:
                   str(self.heap[2 * i]) + " RIGHT CHILD : " +
                   str(self.heap[2 * i + 1]))
 
-    # Function to build the min heap using
-    # the heapify function
+    # Function to build the min heap using the heapify function
     def to_min_heap(self):
 
         for pos in range(self.size // 2, 0, -1):
             self.heapify(pos)
 
-    # Function to remove and return the minimum
-    # element from the heap
+    # Function to remove and return the minimum element from the heap
     def extract(self):
         if not self.heap[0]:
             raise ValueError("[ERR] Access on an empty heap.")
@@ -113,4 +97,3 @@ class MinHeap:
             return self.heapify(pos)
         else:
             raise ValueError("[ERR] Access on heap with an invalid position.")
-
