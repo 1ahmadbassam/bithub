@@ -35,7 +35,6 @@ class MinHeap:
         self.maxsize = maxsize
         self.size = 0
         self.heap = [None] * (self.maxsize + 1)
-        self.front = 0
 
     # Function to swap two nodes of the heap
     def swap(self, fpos, spos):
@@ -54,13 +53,14 @@ class MinHeap:
                 # the left child 
                 if self.heap[_left_child(pos)].key < self.heap[_right_child(pos)].key:
                     self.swap(pos, _left_child(pos))
-                    self.heapify(_left_child(pos))
+                    return self.heapify(_left_child(pos))
 
                 # Swap with the right child and heapify
                 # the right child 
                 else:
                     self.swap(pos, _right_child(pos))
-                    self.heapify(_right_child(pos))
+                    return self.heapify(_right_child(pos))
+        return pos
 
     # Function that returns true if the passed 
     # node is a leaf node 
@@ -80,6 +80,7 @@ class MinHeap:
                and (self.heap[current].key < self.heap[_parent(current)].key)):
             self.swap(current, _parent(current))
             current = _parent(current)
+        return current
 
     # Function to print the contents of the heap
     def print(self):
@@ -95,12 +96,21 @@ class MinHeap:
         for pos in range(self.size // 2, 0, -1):
             self.heapify(pos)
 
-            # Function to remove and return the minimum
-
+    # Function to remove and return the minimum
     # element from the heap
     def extract(self):
-        popped = self.heap[self.front]
-        self.heap[self.front] = self.heap[self.size]
+        if not self.heap[0]:
+            raise ValueError("[ERR] Access on an empty heap.")
+        popped = self.heap[0]
+        self.heap[0] = self.heap[self.size]
         self.size -= 1
-        self.heapify(self.front)
+        self.heapify(0)
         return popped
+
+    def increase_key(self, pos, key):
+        if pos < self.size:
+            self.heap[pos].key = key
+            return self.heapify(pos)
+        else:
+            raise ValueError("[ERR] Access on heap with an invalid position.")
+
