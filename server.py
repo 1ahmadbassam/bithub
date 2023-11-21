@@ -1,8 +1,9 @@
 import socket
 import threading
-from requests import Request
-from requests import parse as parse_request
-from responses import parse as parse_response
+
+from httplib import http
+from httplib.requests import parse as parse_request
+from httplib.responses import parse as parse_response
 
 PORT = 8080
 SERVER = ""
@@ -31,7 +32,7 @@ def get_data_from_byte_stream(bytestream):
 	i = 0
 	header = []
 	while i < len(bytestream):
-		char = bytestream[i].to_bytes().decode(Request.ASCII)
+		char = bytestream[i].to_bytes().decode(http.Charset.ASCII)
 		if char == '\r' and prev1 == '\n' and prev2 == '\r':
 			break
 		header.append(char)
@@ -39,7 +40,7 @@ def get_data_from_byte_stream(bytestream):
 		prev1 = char
 		i += 1
 	i += 2
-	header.append(Request.DELIMITER)
+	header.append(http.DELIMITER)
 	header = ''.join(header)
 	obj = bytestream[i:]
 	return header, obj
@@ -48,10 +49,12 @@ def get_data_from_byte_stream(bytestream):
 def connect_to_external_server(req):
 	client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	client_to_origin.connect((req.host, 80))
-	client_to_origin.send(str(req).encode(Request.ASCII))
+	client_to_origin.send(str(req).encode(http.Charset.ASCII))
 	data = recv_all(client_to_origin)
 	header, obj = get_data_from_byte_stream(data)
 	header_obj = parse_response(header)
+	print(header_obj)
+	print(header_obj.path)
 	return header_obj, obj
 
 
@@ -61,9 +64,11 @@ def handle_client(conn, addr):
 		try:
 			req = conn.recv(ACCEPT_LENGTH)
 			if req:
-				r = parse_request(req.decode(Request.ASCII))
+				r = parse_request(req.decode(http.Charset.ASCII))
 				header_obj, obj = connect_to_external_server(r)
 				conn.send(obj)
+				r = parse_request(req.decode(http.Charset.ASCII))
+				print(r)
 				conn.close()
 				print(f"[INFO] Client with address {addr} has terminated a connection.\n{header_obj}")
 				break

@@ -1,40 +1,18 @@
 from datetime import datetime
 
-
-def get_path_from_command_line(line):
-    if len(line) < 4:
-        return None
-    path = []
-    i = 0
-    while i < len(line) and line[i] == Response.WHITESPACE:
-        i += 1
-    while i < len(line) and line[i] != '/':
-        path.append(line[i])
-        i += 1
-    i += 1
-    return ''.join(path), i
+from httplib import http
 
 
-def get_http_version_from_command_line(line, last=0):
-    if not line:
-        return None
-    i = last
-    ver = []
-    while i < len(line) and line[i] == Response.WHITESPACE:
-        i += 1
-    while i < len(line) and line[i] != Response.WHITESPACE and line[i] != Response.DELIMITER[0]:
-        ver.append(line[i])
-        i += 1
-    try:
-        return float(''.join(ver)), i
-    except ValueError:
-        return None
+def parse_response_line(line: str) -> tuple:
+    [http_ver, status_code, status_phrase] = line.split(http.WHITESPACE, 2)
+    http_ver = float(http_ver.split('/')[1])
+    return http_ver, status_code, status_phrase
 
 
 def parse_http_line(line: str, obj):
     if not line or not obj:
         return
-    keyword, contents = line.removesuffix(Response.DELIMITER).split(':', 1)
+    keyword, contents = line.removesuffix(http.DELIMITER).split(':', 1)
     keyword = keyword.lower().strip()
     if keyword == "connection":
         obj.connection = {x.strip() for x in contents.split(',')}
@@ -42,11 +20,11 @@ def parse_http_line(line: str, obj):
         obj.proxyConnection = {x.strip() for x in contents.split(',')}
     elif keyword == "keep-alive":
         if ',' not in contents:
-            obj.keepAlive["timeout"] = contents.strip()
+            obj.keep_alive["timeout"] = contents.strip()
         else:
             for x in contents.split(','):
                 [param, value] = x.split('=', 1)
-                obj.keepAlive[param.strip()] = value.strip()
+                obj.keep_alive[param.strip()] = value.strip()
     elif keyword == "server":
         obj.server = contents.strip()
     elif keyword == "accept":
@@ -100,64 +78,29 @@ def parse_http_line(line: str, obj):
     elif keyword == "location":
         obj.location = contents.strip()
     elif keyword == "date":
-        obj.date = datetime.strptime(contents.strip(), Response.DATE_FORMAT)
+        obj.date = datetime.strptime(contents.strip(), http.DATE_FORMAT)
     elif keyword == "last-modified":
         res = contents.split(';', 1)
         if len(res) > 1:
             [date, length] = res
             length = length.split("=")[1]
-            obj.lastModified = (datetime.strptime(date.strip(), Response.DATE_FORMAT), int(length))
+            obj.lastModified = (datetime.strptime(date.strip(), http.DATE_FORMAT), int(length))
         else:
-            obj.lastModified = (datetime.strptime(contents.strip(), Response.DATE_FORMAT), 0)
+            obj.lastModified = (datetime.strptime(contents.strip(), http.DATE_FORMAT), 0)
     else:
         raise ValueError("Unknown HTTP header field for line " + line)
-
-
-def get_status(line: str, last=0):
-    if not line:
-        return None
-    status = []
-    i = last
-    while i < len(line) and line[i] == Response.WHITESPACE:
-        i += 1
-    while i < len(line) and line[i] != Response.WHITESPACE:
-        status.append(line[i])
-        i += 1
-    try:
-        return int(''.join(status)), i
-    except ValueError:
-        return None
-
-
-def get_message(line: str, last=0):
-    if not line:
-        return None
-    message = []
-    i = last
-    while i < len(line) and line[i] == Response.WHITESPACE:
-        i += 1
-    while i < len(line) and line[i] != Response.DELIMITER[0]:
-        message.append(line[i])
-        i += 1
-    try:
-        return ''.join(message)
-    except ValueError:
-        return None
 
 
 def parse(res: str):
     if not res:
         return None
     if isinstance(res, bytes):
-        res = res.decode(Response.ASCII)
-    res = res.split(Response.DELIMITER)
-    path, last = get_path_from_command_line(res[0])
-    http_ver, last = get_http_version_from_command_line(res[0], last)
-    res_status, last = get_status(res[0], last)
-    res_message = get_message(res[0], last)
-    if not path or not http_ver or not res_status:
+        res = res.decode(http.Charset.ASCII)
+    res = res.split(http.DELIMITER)
+    res_status, res_message, http_ver = parse_response_line(res[0])
+    if res_status or not res_message:
         return None
-    obj = Response(res_status, res_message, path, http_ver)
+    obj = Response(res_status, res_message, http_ver)
 
     for line in res[1:]:
         parse_http_line(line, obj)
@@ -168,13 +111,13 @@ def _parse_param_to_header_field(name, params, var=None):
     if not params:
         return None
     if params and isinstance(params, str):
-        return f"{str(name)}:{Response.WHITESPACE}{str(params)}{Response.DELIMITER}"
-    field = [str(name), ":", Response.WHITESPACE]
+        return f"{str(name)}:{http.WHITESPACE}{str(params)}{http.DELIMITER}"
+    field = [str(name), ":", http.WHITESPACE]
     if params and isinstance(params, set):
         for x in params:
             field.append(x)
             field.append(',')
-            field.append(Response.WHITESPACE)
+            field.append(http.WHITESPACE)
         field.pop()
         field.pop()
     elif params and isinstance(params, dict):
@@ -183,83 +126,54 @@ def _parse_param_to_header_field(name, params, var=None):
                 if sp:
                     field.append(f"{str(x)};{str(var)}={str(sp)}")
                     field.append(',')
-                    field.append(Response.WHITESPACE)
+                    field.append(http.WHITESPACE)
                 else:
                     field.append(str(x))
                     field.append(',')
-                    field.append(Response.WHITESPACE)
+                    field.append(http.WHITESPACE)
         else:
             for x, sp in params.items():
                 field.append(f"{str(x)}={str(sp)}")
                 field.append(',')
-                field.append(Response.WHITESPACE)
+                field.append(http.WHITESPACE)
         field.pop()
         field.pop()
     elif params and isinstance(params, tuple):
         field.append(str(params[0]))
         if params[1]:
             field.append(';')
-            field.append(Response.WHITESPACE)
+            field.append(http.WHITESPACE)
             field.append(f"{str(var)}={str(params[1])}")
     else:
         field.append(str(params))
-    field.append(Response.DELIMITER)
+    field.append(http.DELIMITER)
     return ''.join(field)
 
 
 class Response:
-    GET = 0
-    POST = 1
-    HEAD = 2
-    PUT = 3
-
-    GET_COMMAND = "GET"
-    POST_COMMAND = "POST"
-    HEAD_COMMAND = "HEAD"
-    PUT_COMMAND = "PUT"
-
-    HTTP1 = 1.0
-    HTTP11 = 1.1
-    HTTP2 = 2.0
-
-    ENGLISH = 'en'
-    ENGLISH_UNITED_STATES = 'en-us'
-    ARABIC = 'ar'
-    ARABIC_SAUDI_ARABIA = 'ar-sa'
-
-    ZIP = "zip"
-    GZIP = "gzip"
-    DEFLATE = "deflate"
-
-    ISO8859 = "iso-8859-1"
-    ASCII = "ascii"
-    UTF8 = "utf-8"
-
-    DELIMITER = "\r\n"
-    WHITESPACE = ' '
-
-    DATE_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
-
-    def __init__(self, res_status, res_message, path, http_ver=HTTP1):
-        self.resStatus = res_status
-        self.resMessage = res_message
-        self.path = path
-        self.httpVer = http_ver
+    def __init__(self, res_status, res_message, http_ver=http.Version.HTTP1):
+        # ------common http response fields------
+        self.res_status = res_status
+        self.res_message = res_message
+        self.http_ver = http_ver
         self.server = None
         self.connection = {"close"}
-        self.upgrade = set()
-        self.keepAlive = {}
-        self.acceptRanges = set()
+        self.keep_alive = {}
+        self.date = None
         self.etag = None
+        # ------content-related response fields------
+        self.acceptRanges = set()
         self.contentLength = None
         self.contentType = None
         self.contentLanguage = {}
         self.contentCharset = {}
         self.contentEncoding = set()
+        # ------cache-related response fields------
         self.cacheControl = {}
         self.proxyConnection = set()
-        self.date = None
         self.lastModified = None
+        # ------fields used by modern browsers------
+        self.upgrade = set()
         self.accept = set()
         self.vary = set()
         self.accessControlAllowMethods = set()
@@ -273,19 +187,16 @@ class Response:
     def set_server(self, new_server):
         self.server = new_server
 
-    def set_path(self, new_path):
-        self.path = new_path
-
     def set_keep_alive_connection(self):
         if "close" in self.connection:
             self.connection.remove("close")
         self.connection.add("keep-alive")
 
     def set_keep_alive_timeout(self, timeout):
-        self.keepAlive["timeout"] = timeout
+        self.keep_alive["timeout"] = timeout
 
     def set_keep_alive_max(self, max):
-        self.keepAlive["max"] = max
+        self.keep_alive["max"] = max
 
     def set_close_connection(self):
         if "keep-alive" in self.connection:
@@ -364,14 +275,14 @@ class Response:
         if not date_string:
             self.date = None
         else:
-            self.date = datetime.strptime(date_string, Response.DATE_FORMAT)
+            self.date = datetime.strptime(date_string, http.DATE_FORMAT)
 
     def set_last_modified(self, date_string, length=0):
         if not date_string:
             self.lastModifiedSince = None
         else:
             self.lastModifiedSince = (datetime.strptime(
-                date_string, Response.DATE_FORMAT), length)
+                date_string, http.DATE_FORMAT), length)
 
     def add_accept_range(self, range):
         self.acceptRanges.add(range)
@@ -428,24 +339,23 @@ class Response:
     def set_x_xss_protection_report_uri(self, uri):
         self.xXSSProtection = f"1; report={uri}"
 
-    def add_upgrade_field (self, field):
+    def add_upgrade_field(self, field):
         self.upgrade.add(field)
 
     def remove_upgrade_field(self, field):
         self.upgrade.remove(field)
 
     def get_http_version(self):
-        return f"HTTP/{str(self.httpVer)}"
+        return f"HTTP/{str(self.http_ver)}"
 
     def get_http_response_line(self):
-        return f"{self.get_http_version()} {self.resStatus} {self.resMessage}{Response.DELIMITER}"
+        return f"{self.get_http_version()} {self.res_status} {self.res_message}{http.DELIMITER}"
 
     def get_server_line(self):
         return _parse_param_to_header_field("Server", self.server)
 
     def get_connection_line(self):
         return _parse_param_to_header_field("Connection", self.connection)
-
 
     def get_proxy_connection_line(self):
         if self.proxyConnection:
@@ -478,11 +388,11 @@ class Response:
         return _parse_param_to_header_field("Content-Encoding", self.contentEncoding)
 
     def get_date_line(self):
-        return _parse_param_to_header_field("Date", self.date.strftime(Response.DATE_FORMAT))
+        return _parse_param_to_header_field("Date", self.date.strftime(http.DATE_FORMAT))
 
     def get_last_modified_line(self):
         return _parse_param_to_header_field("Last-Modified",
-                                            (self.lastModified[0].strftime(Response.DATE_FORMAT),
+                                            (self.lastModified[0].strftime(http.DATE_FORMAT),
                                              self.lastModified[1] if self.lastModified[1] > 0 else None),
                                             "length")
 
@@ -502,7 +412,7 @@ class Response:
         return _parse_param_to_header_field("ETag", self.etag)
 
     def get_keep_alive_line(self):
-        return _parse_param_to_header_field("Keep-Alive", self.keepAlive)
+        return _parse_param_to_header_field("Keep-Alive", self.keep_alive)
 
     def get_authentication_line(self):
         return _parse_param_to_header_field("Authentication", self.authentications)
@@ -522,7 +432,7 @@ class Response:
     def __str__(self):
         response = [self.get_http_response_line(), self.get_server_line(),
                     self.get_connection_line()]
-        if self.keepAlive:
+        if self.keep_alive:
             response.append(self.get_keep_alive_line())
         if self.proxyConnection:
             response.append(self.get_proxy_connection_line())
@@ -566,5 +476,5 @@ class Response:
             response.append(self.get_x_xss_protection_line())
         if self.upgrade:
             response.append(self.get_upgrade_line())
-        response.append(Response.DELIMITER)
+        response.append(http.DELIMITER)
         return ''.join(response)

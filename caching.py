@@ -4,7 +4,7 @@ CACHE_DIRECTIVE = "cache/"
 
 
 def handle_cache_object(web_url: str, filename: str, obj: bytes):
-	path = CACHE_DIRECTIVE + web_url.removeprefix("http://")
+	path = CACHE_DIRECTIVE + web_url.removeprefix("httplib://")
 	os.makedirs(path.removesuffix(filename), exist_ok=True)
 	cache_object(path, obj)
 
