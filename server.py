@@ -20,10 +20,9 @@ server.bind(ADDR)
 
 
 def recv_all(sock):
-    buf_size = 2 << 11
     data = b''
     while True:
-        part = sock.recv(buf_size)
+        part = sock.recv(BUFFER)
         if len(part) == 0:
             break
         data += part

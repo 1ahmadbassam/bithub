@@ -2,7 +2,6 @@ from datetime import datetime
 from urllib.parse import urlparse
 from dataclasses import dataclass
 
-BUFFER = 2 << 11
 DELIMITER = "\r\n"
 WHITESPACE = ' '
 
