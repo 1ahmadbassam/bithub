@@ -98,7 +98,7 @@ def parse(res: str):
         res = res.decode(http.Charset.ASCII)
     res = res.split(http.DELIMITER)
     res_status, res_message, http_ver = parse_response_line(res[0])
-    if res_status or not res_message:
+    if not res_status or not res_message:
         return None
     obj = Response(res_status, res_message, http_ver)
 

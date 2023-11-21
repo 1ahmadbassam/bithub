@@ -2,12 +2,14 @@ from dataclasses import dataclass
 
 import validators
 
+
 from httplib import http
 
 
 def parse_command_line(line: str) -> tuple:
     [command_str, path, http_ver] = line.split(http.WHITESPACE, 2)
-    http_ver = float(http_ver.split('/')[1])
+    http_ver = float(http_ver.strip().split('/')[1])
+    command_str = command_str.strip()
     if command_str == Request.Command.GET_KEYWORD:
         command = Request.Command.GET
     elif command_str == Request.Command.POST_KEYWORD:
@@ -17,8 +19,8 @@ def parse_command_line(line: str) -> tuple:
     elif command_str == Request.Command.PUT_KEYWORD:
         command = Request.Command.PUT
     else:
-        raise ValueError(f"Unrecognized HTTP command {command_str}")
-    return command, path, http_ver
+        raise ValueError(f"[ERR] Unrecognized HTTP command {command_str}.")
+    return command, path.strip(), http_ver
 
 
 def __parse_http_line(line: str, request_obj):
@@ -65,12 +67,12 @@ def __parse_http_line(line: str, request_obj):
             else:
                 setattr(request_obj, keyword, contents.strip())
         except AttributeError:
-            raise ValueError(f"Unknown HTTP header field for keyword {keyword}.")
+            raise ValueError(f"[ERR] Unknown HTTP header field for keyword {keyword}.")
 
 
 def parse(request: str):
     if not request:
-        raise ValueError("[ERR] Empty request to parse")
+        raise ValueError("[ERR] Empty request to parse.")
     request = request.split(http.DELIMITER)
     command, path, http_ver = parse_command_line(request[0])
     request_obj = Request(command, path, http_ver)

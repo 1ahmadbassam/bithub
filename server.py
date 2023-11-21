@@ -54,7 +54,6 @@ def connect_to_external_server(req):
 	header, obj = get_data_from_byte_stream(data)
 	header_obj = parse_response(header)
 	print(header_obj)
-	print(header_obj.path)
 	return header_obj, obj
 
 
