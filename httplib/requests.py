@@ -104,6 +104,7 @@ class Request:
         self.referer = None
         # ------content-related request fields------
         self.accept = set()
+        self.content_length = None
         self.accept_language = {}
         self.accept_charset = {}
         self.accept_encoding = set()
@@ -286,6 +287,9 @@ class Request:
 
     def _line_sec_gpc(self):
         return http.format_param("Sec-GPC", self.sec_gpc)
+    
+    def _line_content_length(self):
+        return http.format_param("Content-Length", self.content_length)
 
     def __str__(self):
         request = [self.get_command_statement()]
