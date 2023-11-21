@@ -70,7 +70,7 @@ class MinHeap:
     # Function to insert a node into the heap
     def insert(self, element):
         if self.size >= self.maxsize:
-            return
+            raise ValueError("[ERR] Heap is full.")
         self.size += 1
         self.heap[self.size] = element
 
