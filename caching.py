@@ -1,9 +1,57 @@
 import os
+from datetime import time
+from min_heap import MinHeap, Pair
 
 CACHE_DIRECTIVE = "cache/"
 
+cache_size = 0
+max_cache_size = 104857600 # 100 MB
+cache_min_heap = MinHeap(max_cache_size)
+cache_dictionary = {}
 
-def handle_cache_object(web_url: str, filename: str, obj: bytes):
+def get_current_time():
+    return int(time.time()*1000)
+
+def add_to_cache(path, size, filename, obj):
+	global cache_size, cache_min_heap, cache_dictionary
+	if path not in cache_dictionary:
+		while cache_size + size > max_cache_size:
+			delete_oldest_file()
+		cache_size += size
+		time = get_current_time()
+		position = cache_min_heap.insert(Pair(time, path))
+		cache_dictionary[path] = time, position
+		save_object_on_disk(path, filename, obj)
+	else:
+		time = get_current_time()
+		new_position = cache_min_heap.increase_key(Pair(time, path))
+		cache_dictionary[path] = time, new_position
+		save_object_to_disk(path, filename, obj)
+
+def delete_oldest_file():
+	global cache_size, cache_min_heap, cache_dictionary
+	oldest_file = cache_min_heap.extract()
+	cache_size -= os.stat(oldest_file).st_size
+	del cache_dictionary[oldest_file]
+      
+
+def save_object_to_disk(web_url: str, filename: str, obj: bytes):
+	path = CACHE_DIRECTIVE + web_url.removeprefix("http://")
+	os.makedirs(path.removesuffix(filename), exist_ok=True)
+	with open(path, "wb") as file:
+		file.write(obj)
+		
+def get_cache_object(web_url: str, filename: str):
+    path = CACHE_DIRECTIVE + web_url.removeprefix("http://")
+    return get_object(path)
+
+def get_object(path):
+    with open(path, "rb") as file:
+         return file.read()
+
+
+
+def save_object_on_disk(web_url: str, filename: str, obj: bytes):
     path = CACHE_DIRECTIVE + web_url.removeprefix("http://")
     os.makedirs(path.removesuffix(filename), exist_ok=True)
     cache_object(path, obj)
