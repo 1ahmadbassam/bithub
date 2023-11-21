@@ -201,7 +201,7 @@ class Request:
         elif self.command == Request.Command.PUT:
             command_statement.append(Request.Command.PUT_KEYWORD)
         else:
-            raise ValueError("[ERR] Unimplemented request type.")
+            raise ValueError("[ERR] Unimplemented command statement.")
         command_statement.append(http.WHITESPACE)
         command_statement.append(self.path)
         command_statement.append(http.WHITESPACE)
