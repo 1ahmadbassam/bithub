@@ -35,8 +35,14 @@ def __parse_http_line(line: str, request_obj):
                 request_obj.keep_alive[param.strip()] = value.strip()
     elif keyword == "cache_control":
         for x in contents.split(','):
-            [param, value] = x.split('=', 1)
-            request_obj.cache_control[param.strip()] = value.strip()
+            res = x.split('=', 1)
+            if len(res) > 1:
+                [param, value] = x.split('=', 1)
+                request_obj.cache_control[param.strip()] = value.strip()
+            else:
+                request_obj.cache_control[res[0].strip()] = None
+    elif keyword == "content_length":
+        request_obj.content_length = int(contents.strip())
     elif keyword == "date":
         request_obj.set_date(contents.strip())
     elif keyword == "if_modified_since":
@@ -262,7 +268,7 @@ class Request:
         return http.format_param("If-None-Match", self.if_none_match)
 
     def _line_date(self):
-        return http.format_param("Date", http.get_date_string(self.date))
+        return http.format_param("Date", http.get_date_string(self.date) if self.date else None)
 
     def _line_proxy_connection(self):
         return http.format_param("Proxy-Connection", self.proxy_connection)

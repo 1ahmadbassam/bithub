@@ -86,9 +86,14 @@ def format_param(name: str, param: object, var=None):
                     field.append(WHITESPACE)
         else:
             for x, sp in param.items():
-                field.append(f"{str(x)}={str(sp)}")
-                field.append(',')
-                field.append(WHITESPACE)
+                if sp:
+                    field.append(f"{str(x)}={str(sp)}")
+                    field.append(',')
+                    field.append(WHITESPACE)
+                else:
+                    field.append(str(x))
+                    field.append(',')
+                    field.append(WHITESPACE)
         field.pop()
         field.pop()
     elif param and isinstance(param, tuple):

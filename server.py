@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 from httplib import http
 from httplib.requests import parse as parse_request
@@ -14,19 +15,22 @@ SERVER = ""
 ADDR = (SERVER, PORT)
 BUFFER = 2 << 11
 ACCEPT_LENGTH = 2 << 13
+TIMEOUT = 2
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
 
 def recv_all(sock):
-    data = b''
+    bytestream = b''
     while True:
-        part = sock.recv(BUFFER)
-        if len(part) == 0:
+        try:
+            sock.settimeout(TIMEOUT)
+            part = sock.recv(BUFFER)
+            bytestream += part
+        except TimeoutError:
             break
-        data += part
-    return data
+    return bytestream
 
 
 def get_data_from_byte_stream(bytestream):
@@ -46,6 +50,8 @@ def get_data_from_byte_stream(bytestream):
     header.append(http.DELIMITER)
     header = ''.join(header)
     obj = bytestream[i:]
+    if not obj:
+        obj = b''
     return header, obj
 
 
@@ -53,17 +59,17 @@ def connect_to_external_server(req):
     client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_to_origin.connect((req.host, 80))
     client_to_origin.send(str(req).encode(http.Charset.ASCII))
-    data = recv_all(client_to_origin)
-    header, obj = get_data_from_byte_stream(data)
-    resp = parse_response(header)
+    bytestream = recv_all(client_to_origin)
+    resp, obj = get_data_from_byte_stream(bytestream)
+    resp = parse_response(resp)
     print(resp)
-    return resp, obj
+    return resp, obj, bytestream
 
 
 def handle_cache_obj(req: Request, resp: Response, obj: bytes):
     filename = req.get_obj_filename()
     if resp.status_code == "200":
-        caching.add_to_cache(caching.get_path_from_url(req.path, filename), int(resp.content_length), filename, obj)
+        caching.add_to_cache(caching.get_path_from_url(req.path, filename), filename, obj)
     else:
         print("[INFO] Cannot cache object for response with status " + str(resp.status_code) + " "
               + str(resp.status_phrase) + ".")
@@ -72,22 +78,29 @@ def handle_cache_obj(req: Request, resp: Response, obj: bytes):
 
 def handle_client(conn, addr):
     print(f"[INFO] Client with address {addr} has initiated a connection.")
-    while True:
+    connected = True
+    while connected:
+        connected = False
         try:
-            req_bytes = conn.recv(ACCEPT_LENGTH)
-            if req_bytes:
-                req = parse_request(req_bytes.decode(http.Charset.ASCII))
-                print(str(req).encode(http.Charset.ASCII))
-                resp, obj = connect_to_external_server(req)
+            bytestream = recv_all(conn)
+            req = get_data_from_byte_stream(bytestream)[0]
+            print(req)
+            req = parse_request(req)
+            if bytestream:
+                resp, obj, bytestream = connect_to_external_server(req)
                 handle_cache_obj(req, resp, obj)
-                conn.send(obj)
-                conn.close()
+                if "keep-alive" in req.connection and "keep-alive" in resp.connection:
+                    connected = True
+                else:
+                    resp.connection = {"close"}
+                conn.send(bytestream)
                 print(f"[INFO] Client with address {addr} has terminated a connection.")
-                break
         except (ConnectionError, ConnectionResetError):
             conn.close()
             print(f"[INFO] Client with address {addr} has terminated a connection.")
             break
+    conn.close()
+    print(f"[INFO] Client with address {addr} has terminated a connection.")
 
 
 def run_server():

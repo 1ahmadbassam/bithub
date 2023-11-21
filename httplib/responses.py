@@ -21,8 +21,14 @@ def __parse_http_line(line: str, response_obj):
                 response_obj.keep_alive[param.strip()] = value.strip()
     elif keyword == "cache_control":
         for x in contents.split(','):
-            [param, value] = x.split('=', 1)
-            response_obj.cache_control[param.strip()] = value.strip()
+            res = x.split('=', 1)
+            if len(res) > 1:
+                [param, value] = x.split('=', 1)
+                response_obj.cache_control[param.strip()] = value.strip()
+            else:
+                response_obj.cache_control[res[0].strip()] = None
+    elif keyword == "content_length":
+        response_obj.content_length = int(contents.strip())
     elif keyword == "date":
         response_obj.set_date(contents.strip())
     elif keyword == "content_type":
@@ -61,7 +67,8 @@ def __parse_http_line(line: str, response_obj):
             else:
                 setattr(response_obj, keyword, contents.strip())
         except AttributeError:
-            raise ValueError(f"[ERR] Unknown HTTP header field for keyword {keyword}.")
+            pass
+            # raise ValueError(f"[ERR] Unknown HTTP header field for keyword {keyword}.")
 
 
 def parse(response: str):
@@ -246,12 +253,12 @@ class Response:
         return http.format_param("Content-Encoding", self.content_encoding)
 
     def _line_date_line(self):
-        return http.format_param("Date", self.date.strftime(http.DATE_FORMAT))
+        return http.format_param("Date", http.get_date_string(self.date) if self.date else None)
 
     def _line_last_modified(self):
         return http.format_param("Last-Modified",
-                                 (self.last_modified[0].strftime(http.DATE_FORMAT),
-                                  self.last_modified[1] if self.last_modified[1] > 0 else None),
+                                 (http.get_date_string(self.last_modified[0]),
+                                  self.last_modified[1]) if self.last_modified else None,
                                  "length")
 
     def _line_vary(self):

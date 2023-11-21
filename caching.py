@@ -26,8 +26,9 @@ def get_path_from_url(url: str, filename: str):
             return path + '/' + filename
 
 
-def add_to_cache(path, size, filename, obj):
+def add_to_cache(path, filename, obj):
     global cache_size, cache_min_heap, cache_dictionary
+    size = len(obj)
     if path not in cache_dictionary:
         while cache_size + size > DISK_MAX_SIZE and cache_min_heap.size == cache_min_heap.maxsize:
             delete_oldest_file()
