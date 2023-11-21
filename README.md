@@ -11,6 +11,7 @@ Resources:
 - https://note.nkmk.me/en/python-os-mkdir-makedirs/
 - https://www.tutorialspoint.com/python/os_utime.htm
 - https://stackoverflow.com/questions/29792189/grouping-constants-in-python
+- https://www.geeksforgeeks.org/min-heap-in-python/
 - https://customtkinter.tomschimansky.com/documentation/
 
 Steps followed:
