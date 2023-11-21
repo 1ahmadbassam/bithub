@@ -9,7 +9,7 @@ def parse_response_line(line: str) -> tuple:
     return status_code, status_phrase, http_ver
 
 
-def parse_http_line(line: str, obj):
+def __parse_http_line(line: str, obj):
     if not line or not obj:
         return
     keyword, contents = line.removesuffix(http.DELIMITER).split(':', 1)
@@ -103,51 +103,9 @@ def parse(res: str):
     obj = Response(res_status, res_message, http_ver)
 
     for line in res[1:]:
-        parse_http_line(line, obj)
+        __parse_http_line(line, obj)
     return obj
 
-
-def _parse_param_to_header_field(name, params, var=None):
-    if not params:
-        return None
-    if params and isinstance(params, str):
-        return f"{str(name)}:{http.WHITESPACE}{str(params)}{http.DELIMITER}"
-    field = [str(name), ":", http.WHITESPACE]
-    if params and isinstance(params, set):
-        for x in params:
-            field.append(x)
-            field.append(',')
-            field.append(http.WHITESPACE)
-        field.pop()
-        field.pop()
-    elif params and isinstance(params, dict):
-        if var:
-            for x, sp in params.items():
-                if sp:
-                    field.append(f"{str(x)};{str(var)}={str(sp)}")
-                    field.append(',')
-                    field.append(http.WHITESPACE)
-                else:
-                    field.append(str(x))
-                    field.append(',')
-                    field.append(http.WHITESPACE)
-        else:
-            for x, sp in params.items():
-                field.append(f"{str(x)}={str(sp)}")
-                field.append(',')
-                field.append(http.WHITESPACE)
-        field.pop()
-        field.pop()
-    elif params and isinstance(params, tuple):
-        field.append(str(params[0]))
-        if params[1]:
-            field.append(';')
-            field.append(http.WHITESPACE)
-            field.append(f"{str(var)}={str(params[1])}")
-    else:
-        field.append(str(params))
-    field.append(http.DELIMITER)
-    return ''.join(field)
 
 
 class Response:
@@ -277,138 +235,95 @@ class Response:
         else:
             self.x_frame_options = option
 
-
-
     def _line_http_version(self):
         return f"HTTP/{str(self.http_ver)}"
 
     def _line_http_response(self):
-        return f"{self._line_http_version()} {self.res_status} {self.res_message}{http.DELIMITER}"
+        return f"{self._line_http_version()} {self.status_code} {self.status_phrase}{http.DELIMITER}"
 
     def _line_server(self):
-        return _parse_param_to_header_field("Server", self.server)
+        return http.format_param("Server", self.server)
 
-    def _line_connection_line(self):
-        return _parse_param_to_header_field("Connection", self.connection)
+    def _line_connection(self):
+        return http.format_param("Connection", self.connection)
 
-    def _line_proxy_connection_line(self):
-        if self.proxyConnection:
-            return _parse_param_to_header_field("Proxy-Connection", self.proxyConnection)
+    def _line_proxy_connection(self):
+        if self.proxy_connection:
+            return http.format_param("Proxy-Connection", self.proxy_connection)
         else:
             return None
 
-    def _line_cache_control_line(self):
-        return _parse_param_to_header_field("Cache-Control", self.cacheControl)
+    def _line_cache_control(self):
+        return http.format_param("Cache-Control", self.cache_control)
 
-    def _line_accept_line(self):
-        return _parse_param_to_header_field("Accept", self.accept)
+    def _line_accept(self):
+        return http.format_param("Accept", self.accept)
 
-    def _line_accept_ranges_line(self):
-        return _parse_param_to_header_field("Accept-Ranges", self.acceptRanges)
+    def _line_accept_ranges(self):
+        return http.format_param("Accept-Ranges", self.accept_ranges)
 
-    def _line_content_length_line(self):
-        return _parse_param_to_header_field("Content-Length", self.contentLength)
+    def _line_content_length(self):
+        return http.format_param("Content-Length", self.content_length)
 
-    def _line_content_type_line(self):
-        return _parse_param_to_header_field("Content-Type", self.contentType)
+    def _line_content_type(self):
+        return http.format_param("Content-Type", self.content_type)
 
-    def _line_content_language_line(self):
-        return _parse_param_to_header_field("Content-Language", self.contentLanguage, "q")
+    def _line_content_language(self):
+        return http.format_param("Content-Language", self.content_language, "q")
 
-    def _line_content_charset_line(self):
-        return _parse_param_to_header_field("Content-Charset", self.contentCharset, "q")
+    def _line_content_charset(self):
+        return http.format_param("Content-Charset", self.content_charset, "q")
 
-    def _line_content_encoding_line(self):
-        return _parse_param_to_header_field("Content-Encoding", self.contentEncoding)
+    def _line_content_encoding(self):
+        return http.format_param("Content-Encoding", self.content_encoding)
 
     def _line_date_line(self):
-        return _parse_param_to_header_field("Date", self.date.strftime(http.DATE_FORMAT))
+        return http.format_param("Date", self.date.strftime(http.DATE_FORMAT))
 
-    def _line_last_modified_line(self):
-        return _parse_param_to_header_field("Last-Modified",
-                                            (self.lastModified[0].strftime(http.DATE_FORMAT),
-                                             self.lastModified[1] if self.lastModified[1] > 0 else None),
+    def _line_last_modified(self):
+        return http.format_param("Last-Modified",
+                                            (self.last_modified[0].strftime(http.DATE_FORMAT),
+                                             self.last_modified[1] if self.last_modified[1] > 0 else None),
                                             "length")
 
-    def _line_vary_line(self):
-        return _parse_param_to_header_field("Vary", self.vary)
+    def _line_vary(self):
+        return http.format_param("Vary", self.vary)
 
-    def _line_access_control_allow_origin_line(self):
-        return _parse_param_to_header_field("Access-Control-Allow-Origin", self.accessControlAllowOrigin)
+    def _line_access_control_allow_origin(self):
+        return http.format_param("Access-Control-Allow-Origin", self.access_control_allow_origin)
 
-    def _line_access_control_allow_methods_line(self):
-        return _parse_param_to_header_field("Access-Control-Allow-Methods", self.accessControlAllowMethods)
+    def _line_access_control_allow_methods(self):
+        return http.format_param("Access-Control-Allow-Methods", self.access_control_allow_methods)
 
     def _line_pragma_line(self):
-        return _parse_param_to_header_field("Pragma", self.pragma)
+        return http.format_param("Pragma", self.pragma)
 
     def _line_etag_line(self):
-        return _parse_param_to_header_field("ETag", self.etag)
+        return http.format_param("ETag", self.etag)
 
     def _line_keep_alive_line(self):
-        return _parse_param_to_header_field("Keep-Alive", self.keep_alive)
+        return http.format_param("Keep-Alive", self.keep_alive)
 
-    def _line_authentication_line(self):
-        return _parse_param_to_header_field("Authentication", self.authentications)
+    def _line_authentications(self):
+        return http.format_param("Authentication", self.authentications)
 
-    def _line_location_line(self):
-        return _parse_param_to_header_field("Location", self.location)
+    def _line_location(self):
+        return http.format_param("Location", self.location)
 
-    def _line_xframe_options_line(self):
-        return _parse_param_to_header_field("X-Frame-Options", self.xFrameOptions)
+    def _line_xframe_options(self):
+        return http.format_param("X-Frame-Options", self.x_frame_options)
 
-    def _line_x_xss_protection_line(self):
-        return _parse_param_to_header_field("X-XSS-Protection", self.xXSSProtection)
+    def _line_x_xss_protection(self):
+        return http.format_param("X-XSS-Protection", self.x_xss_protection)
 
-    def _line_upgrade_line(self):
-        return _parse_param_to_header_field("Upgrade", self.upgrade)
+    def _line_upgrade(self):
+        return http.format_param("Upgrade", self.upgrade)
 
     def __str__(self):
-        response = [self._line_http_response_line(), self._line_server_line(),
-                    self._line_connection_line()]
-        if self.keep_alive:
-            response.append(self._line_keep_alive_line())
-        if self.proxyConnection:
-            response.append(self._line_proxy_connection_line())
-        if self.cacheControl:
-            response.append(self._line_cache_control_line())
-        if self.accept:
-            response.append(self._line_accept_line())
-        if self.acceptRanges:
-            response.append(self._line_accept_ranges_line())
-        if self.contentLength:
-            response.append(self._line_content_length_line())
-        if self.contentType:
-            response.append(self._line_content_type_line())
-        if self.contentLanguage:
-            response.append(self._line_content_language_line())
-        if self.contentCharset:
-            response.append(self._line_content_charset_line())
-        if self.contentEncoding:
-            response.append(self._line_content_encoding_line())
-        if self.date:
-            response.append(self._line_date_line())
-        if self.lastModified:
-            response.append(self._line_last_modified_line())
-        if self.vary:
-            response.append(self._line_vary_line())
-        if self.accessControlAllowOrigin:
-            response.append(self._line_access_control_allow_origin_line())
-        if self.accessControlAllowMethods:
-            response.append(self._line_access_control_allow_methods_line())
-        if self.pragma:
-            response.append(self._line_pragma_line())
-        if self.etag:
-            response.append(self._line_etag_line())
-        if self.authentications:
-            response.append(self._line_authentication_line())
-        if self.location:
-            response.append(self._line_location_line())
-        if self.xFrameOptions:
-            response.append(self._line_xframe_options_line())
-        if self.xXSSProtection:
-            response.append(self._line_x_xss_protection_line())
-        if self.upgrade:
-            response.append(self._line_upgrade_line())
+        response = [self._line_http_response(), self._line_server(), self._line_connection()]
+        for func in [x for x in dir(self) if x.startswith("_line")]:
+            line = getattr(self, func)()
+            if line:
+                response.append(line)
         response.append(http.DELIMITER)
         return ''.join(response)
