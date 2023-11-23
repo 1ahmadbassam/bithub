@@ -442,9 +442,10 @@ class Response:
             line = getattr(self, func)()
             if line:
                 response.append(line)
-        response.append(http.DELIMITER)
         if self.other:
             response.append(http.DELIMITER.join(self.other))
+            response.append(http.DELIMITER)
+        response.append(http.DELIMITER)
         return ''.join(response)
 
 

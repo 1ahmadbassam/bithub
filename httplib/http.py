@@ -42,25 +42,25 @@ def get_host(url: str) -> str:
     return urlparse(url).hostname
 
 
-def get_datetime(date_string: str) -> datetime:
+def get_datetime(date_string: str):
     if not date_string:
         return None
     return datetime.strptime(date_string, DATE_FORMAT)
 
 
-def get_local_datetime(date_string: str) -> datetime:
+def get_local_datetime(date_string: str):
     if not date_string:
         return None
     return datetime.strptime(date_string, DATE_FORMAT)
 
 
-def get_date_string(date_time: datetime) -> str:
+def get_date_string(date_time: datetime):
     if not date_time:
         return None
     return date_time.strftime(DATE_FORMAT)
 
 
-def format_param(name: str, param: object, var: str = None, delim: str = ',') -> str:
+def format_param(name: str, param: object, var: str = None, delim: str = ','):
     if not param:
         return None
     if param and isinstance(param, str):
