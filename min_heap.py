@@ -63,7 +63,6 @@ class MinHeap:
     def insert(self, element: Pair) -> int:
         if self.size >= self.maxsize:
             raise ValueError("[ERR] Heap is full.")
-        self.size += 1
         self.heap[self.size] = element
 
         current = self.size
@@ -72,14 +71,9 @@ class MinHeap:
                and (self.heap[current].key < self.heap[_parent(current)].key)):
             self.swap(current, _parent(current))
             current = _parent(current)
-        return current
+        self.size += 1
 
-    # Function to print the contents of the heap
-    def print(self) -> None:
-        for i in range(1, (self.size // 2) + 1):
-            print(" PARENT : " + str(self.heap[i]) + " LEFT CHILD : " +
-                  str(self.heap[2 * i]) + " RIGHT CHILD : " +
-                  str(self.heap[2 * i + 1]))
+        return current
 
     # Function to build the min heap using the heapify function
     def to_min_heap(self) -> None:
@@ -97,8 +91,11 @@ class MinHeap:
         return popped
 
     def increase_key(self, pos: int, key: int) -> int:
-        if pos <= self.size:
+        if pos < self.size:
             self.heap[pos].key = key
             return self.heapify(pos)
         else:
             raise ValueError("[ERR] Access on heap with an invalid position.")
+
+    def __str__(self):
+        return f"Heap Array:{'[' + ' | '.join([str(x) for x in self.heap[:self.size]]) + ']'}, size:{self.size}, maxsize:{self.maxsize}"

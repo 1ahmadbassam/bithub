@@ -1,5 +1,6 @@
 import socket
 import threading
+import atexit
 
 from httplib import http
 from httplib.requests import __parse_http_line as parse_http_line, parse as parse_request
@@ -93,7 +94,7 @@ def recv_all(sock: socket.socket, request: bool = True):
     bytestream = sock.recv(INITIAL_LENGTH)
     if bytestream:
         sock.settimeout(TIMEOUT)
-        header, obj = get_initial_data_bytestream(bytestream)
+        header, initial_data = get_initial_data_bytestream(bytestream)
         # get request/response obj
         if request:
             primary_obj = parse_request(header)
@@ -101,9 +102,9 @@ def recv_all(sock: socket.socket, request: bool = True):
             primary_obj = parse_response(header)
         if primary_obj.transfer_encoding and "chunked" in primary_obj.transfer_encoding:
             if primary_obj.trailer:
-                data, resume, trailer = get_data_from_chunked(obj, True)
+                data, resume, trailer = get_data_from_chunked(initial_data, True)
             else:
-                data, resume, trailer = get_data_from_chunked(obj)
+                data, resume, trailer = get_data_from_chunked(initial_data)
             if resume:
                 if primary_obj.trailer:
                     part, trailer = recv_transfer_encoding_data(sock, True)
@@ -116,9 +117,11 @@ def recv_all(sock: socket.socket, request: bool = True):
                 for line in trailer.split(http.DELIMITER):
                     parse_http_line(line, primary_obj)
         elif primary_obj.content_length:
-            data = recv_content_length_data(sock, int(primary_obj.content_length))
+            data = initial_data
+            data += recv_content_length_data(sock, int(primary_obj.content_length))
         else:
-            data = recv_data(sock)
+            data = initial_data
+            data += recv_data(sock)
         bytestream += data
         return primary_obj, data, bytestream
     return None, None, None
@@ -198,6 +201,7 @@ def handle_client(conn: socket.socket, addr: str) -> None:
 
 
 def run_server():
+    caching.load_globals()
     server.listen(10)  # process 10 connections at a time maximum
     print(f"[INFO] Server is listening on {ADDR}")
     while True:
@@ -206,5 +210,23 @@ def run_server():
         conn_thread.start()
 
 
+def exit_script():
+    try:
+        # while True:
+        #     inp = input("[INFO] Type 'exit' to exit\n")
+        #     if inp.strip().lower() == "exit":
+        #         print("[INFO] Server is terminating...")
+        #         break
+        while True:
+            pass
+    except KeyboardInterrupt:
+        pass
+    caching.save_globals()
+    exit(0)
+
+
 if __name__ == "__main__":
-    run_server()
+    server_thread = threading.Thread(target=run_server)
+    server_thread.daemon = True
+    server_thread.start()
+    exit_script()
