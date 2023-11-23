@@ -40,7 +40,7 @@ class MinHeap:
         # If the node is a non-leaf node and greater than any of its child 
         if not self.is_leaf(pos) and self.heap[pos]:
             if ((self.heap[_left_child(pos)] and self.heap[pos].key > self.heap[_left_child(pos)].key)
-                    or (self.heap[_right_child(pos)].key and self.heap[pos].key > self.heap[_right_child(pos)].key)):
+                    or (self.heap[_right_child(pos)] and self.heap[pos].key > self.heap[_right_child(pos)].key)):
 
                 # Swap with the left child and heapify the left child 
                 if (self.heap[_left_child(pos)]
