@@ -212,13 +212,11 @@ def run_server():
 
 def exit_script():
     try:
-        # while True:
-        #     inp = input("[INFO] Type 'exit' to exit\n")
-        #     if inp.strip().lower() == "exit":
-        #         print("[INFO] Server is terminating...")
-        #         break
         while True:
-            pass
+            inp = input("[INFO] Type 'exit' to exit\n")
+            if inp.strip().lower() == "exit":
+                print("[INFO] Server is terminating...")
+                break
     except KeyboardInterrupt:
         pass
     caching.save_globals()
