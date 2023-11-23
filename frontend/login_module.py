@@ -7,12 +7,12 @@ ctk.set_appearance_mode("Dark")
 
 accounts = {} 
 
-def hash_password(password):
+def hash_password(password: str) -> str:
     hash_object = hashlib.sha256()
     hash_object.update(password.encode())
     return hash_object.hexdigest()
 
-def create_new_account(username, password):
+def create_new_account(username: str, password: str) -> bool:
     global registration_window
     if not username or not password:
         print("empty username or password.")
@@ -26,7 +26,7 @@ def create_new_account(username, password):
         root.deiconify()
         return True
     
-def authenticate(username, password):
+def authenticate(username: str, password: str) -> None:
     if username not in accounts:
         print("username doesn't exist.")
     else:

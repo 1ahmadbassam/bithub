@@ -1,37 +1,37 @@
 class Pair:
 
-    def __init__(self, key, value):
+    def __init__(self, key: str, value: str) -> None:
         self.key = key
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Key: {self.key}, Value: {self.value}"
 
 # Function to return the position of parent for the node currently at pos
-def _parent(pos):
+def _parent(pos: int) -> int:
     return pos // 2
 
 # Function to return the position of the left child for the node currently at pos 
-def _left_child(pos):
+def _left_child(pos: int) -> int:
     return 2 * pos
 
 # Function to return the position of the right child for the node currently at pos 
-def _right_child(pos):
+def _right_child(pos: int) -> int:
     return (2 * pos) + 1
 
 class MinHeap:
 
-    def __init__(self, maxsize):
+    def __init__(self, maxsize: int) -> None:
         self.maxsize = maxsize
         self.size = 0
         self.heap = [None] * (self.maxsize + 1)
 
     # Function to swap two nodes of the heap
-    def swap(self, fpos, spos):
+    def swap(self, fpos: str, spos: str) -> None:
         self.heap[fpos], self.heap[spos] = self.heap[spos], self.heap[fpos]
 
     # Function to heapify the node at pos
-    def heapify(self, pos):
+    def heapify(self, pos: str) -> int:
 
         # If the node is a non-leaf node and greater than any of its child 
         if not self.is_leaf(pos) and self.heap[pos]:
@@ -50,11 +50,11 @@ class MinHeap:
         return pos
 
     # Function that returns true if the passed node is a leaf node 
-    def is_leaf(self, pos):
+    def is_leaf(self, pos: int) -> bool:
         return pos * 2 > self.size
 
     # Function to insert a node into the heap
-    def insert(self, element):
+    def insert(self, element: Pair) -> int:
         if self.size >= self.maxsize:
             raise ValueError("[ERR] Heap is full.")
         self.size += 1
@@ -69,20 +69,19 @@ class MinHeap:
         return current
 
     # Function to print the contents of the heap
-    def print(self):
+    def print(self) -> None:
         for i in range(1, (self.size // 2) + 1):
             print(" PARENT : " + str(self.heap[i]) + " LEFT CHILD : " +
                   str(self.heap[2 * i]) + " RIGHT CHILD : " +
                   str(self.heap[2 * i + 1]))
 
     # Function to build the min heap using the heapify function
-    def to_min_heap(self):
-
+    def to_min_heap(self) -> None:
         for pos in range(self.size // 2, 0, -1):
             self.heapify(pos)
 
     # Function to remove and return the minimum element from the heap
-    def extract(self):
+    def extract(self) -> Pair:
         if not self.heap[0]:
             raise ValueError("[ERR] Access on an empty heap.")
         popped = self.heap[0]
@@ -91,7 +90,7 @@ class MinHeap:
         self.heapify(0)
         return popped
 
-    def increase_key(self, pos, key):
+    def increase_key(self, pos: int, key: int) -> int:
         if pos < self.size:
             self.heap[pos].key = key
             return self.heapify(pos)

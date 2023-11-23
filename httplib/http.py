@@ -38,29 +38,29 @@ class Charset:
     UTF8 = "utf-8"
 
 
-def get_host(url):
+def get_host(url: str) -> str:
     return urlparse(url).hostname
 
 
-def get_datetime(date_string: str):
+def get_datetime(date_string: str) -> datetime:
     if not date_string:
         return None
     return datetime.strptime(date_string, DATE_FORMAT)
 
 
-def get_local_datetime(date_string: str):
+def get_local_datetime(date_string: str) -> datetime:
     if not date_string:
         return None
     return datetime.strptime(date_string, DATE_FORMAT)
 
 
-def get_date_string(date_time: datetime):
+def get_date_string(date_time: datetime) -> str:
     if not date_time:
         return None
     return date_time.strftime(DATE_FORMAT)
 
 
-def format_param(name: str, param: object, var=None):
+def format_param(name: str, param: object, var: str = None) -> str:
     if not param:
         return None
     if param and isinstance(param, str):

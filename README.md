@@ -4,7 +4,7 @@ Proxy server in python
 Tools and libraries used:
 - Python 3.11
 - tkinter and custom tkinter
-- os, time, datetime, validators, socket, threading
+- os, time, datetime, socket, threading
 
 Resources:
 - https://scribe.rip/@miguendes/how-to-check-if-a-string-is-a-valid-url-in-python-fb0584aab549
@@ -13,8 +13,11 @@ Resources:
 - https://stackoverflow.com/questions/29792189/grouping-constants-in-python
 - https://www.geeksforgeeks.org/min-heap-in-python/
 - https://customtkinter.tomschimansky.com/documentation/
+- https://builtin.com/data-science/python-socket
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Warning
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
 
 Steps followed:
-1) We created the 2 classes: http request and http response, to have our own format of both the request and response.
+1) We created our own http library where we created the 2 classes Request and Response that parse the http requests and responses into Request and Responses objects to be able to manipulate them.
 2) We created a caching system.
 3) We created the user interface using tkinter, customtkinter libraries.

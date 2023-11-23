@@ -21,7 +21,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
 
-def recv_all(sock):
+def recv_all(sock: socket) -> bytes:
     bytestream = b''
     while True:
         try:
@@ -33,7 +33,7 @@ def recv_all(sock):
     return bytestream
 
 
-def get_data_from_byte_stream(bytestream):
+def get_data_from_byte_stream(bytestream: bytes) -> (str, bytes):
     prev1 = None
     prev2 = None
     i = 0
@@ -55,7 +55,7 @@ def get_data_from_byte_stream(bytestream):
     return header, obj
 
 
-def connect_to_external_server(req):
+def connect_to_external_server(req: Request) -> (Response, bytes, bytes):
     client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_to_origin.connect((req.host, 80))
     client_to_origin.send(str(req).encode(http.Charset.ASCII))
@@ -66,7 +66,7 @@ def connect_to_external_server(req):
     return resp, obj, bytestream
 
 
-def handle_cache_obj(req: Request, resp: Response, obj: bytes):
+def handle_cache_obj(req: Request, resp: Response, obj: bytes) -> None:
     filename = req.get_obj_filename()
     if resp.status_code == "200":
         caching.add_to_cache(caching.get_path_from_url(req.path, filename), filename, obj)
@@ -76,7 +76,7 @@ def handle_cache_obj(req: Request, resp: Response, obj: bytes):
         print("[INFO] URL of problem is " + req.path)
 
 
-def handle_client(conn, addr):
+def handle_client(conn: socket, addr: str) -> None:
     print(f"[INFO] Client with address {addr} has initiated a connection.")
     connected = True
     while connected:
