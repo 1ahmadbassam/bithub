@@ -1,23 +1,27 @@
 class Pair:
 
-    def __init__(self, key: str, value: str) -> None:
+    def __init__(self, key: int, value: str) -> None:
         self.key = key
         self.value = value
 
     def __str__(self) -> str:
         return f"Key: {self.key}, Value: {self.value}"
 
+
 # Function to return the position of parent for the node currently at pos
 def _parent(pos: int) -> int:
     return pos // 2
 
-# Function to return the position of the left child for the node currently at pos 
+
+# Function to return the position of the left child for the node currently at pos
 def _left_child(pos: int) -> int:
     return 2 * pos
 
-# Function to return the position of the right child for the node currently at pos 
+
+# Function to return the position of the right child for the node currently at pos
 def _right_child(pos: int) -> int:
     return (2 * pos) + 1
+
 
 class MinHeap:
 
@@ -27,11 +31,11 @@ class MinHeap:
         self.heap = [None] * (self.maxsize + 1)
 
     # Function to swap two nodes of the heap
-    def swap(self, fpos: str, spos: str) -> None:
+    def swap(self, fpos: int, spos: int) -> None:
         self.heap[fpos], self.heap[spos] = self.heap[spos], self.heap[fpos]
 
     # Function to heapify the node at pos
-    def heapify(self, pos: str) -> int:
+    def heapify(self, pos: int) -> int:
 
         # If the node is a non-leaf node and greater than any of its child 
         if not self.is_leaf(pos) and self.heap[pos]:
@@ -39,7 +43,9 @@ class MinHeap:
                     or (self.heap[_right_child(pos)].key and self.heap[pos].key > self.heap[_right_child(pos)].key)):
 
                 # Swap with the left child and heapify the left child 
-                if self.heap[_left_child(pos)].key < self.heap[_right_child(pos)].key:
+                if (self.heap[_left_child(pos)]
+                        and self.heap[_right_child(pos)]
+                        and self.heap[_left_child(pos)].key < self.heap[_right_child(pos)].key):
                     self.swap(pos, _left_child(pos))
                     return self.heapify(_left_child(pos))
 
@@ -91,7 +97,7 @@ class MinHeap:
         return popped
 
     def increase_key(self, pos: int, key: int) -> int:
-        if pos < self.size:
+        if pos <= self.size:
             self.heap[pos].key = key
             return self.heapify(pos)
         else:

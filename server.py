@@ -45,7 +45,7 @@ def get_data_from_chunked(bytestream: bytes, trailer: bool = False) -> (bytes, b
     return data, True, None
 
 
-def recv_transfer_encoding_data(sock: socket, trailer: bool = False) -> (bytes, bytes):
+def recv_transfer_encoding_data(sock: socket.socket, trailer: bool = False) -> (bytes, bytes):
     resume = True
     data = b''
     trailer_data = None
@@ -61,7 +61,7 @@ def recv_transfer_encoding_data(sock: socket, trailer: bool = False) -> (bytes, 
     return data, trailer_data
 
 
-def recv_content_length_data(sock: socket, length: int) -> bytes:
+def recv_content_length_data(sock: socket.socket, length: int) -> bytes:
     remaining = length
     data = b''
     while remaining > 0:
@@ -76,7 +76,7 @@ def recv_content_length_data(sock: socket, length: int) -> bytes:
     return data
 
 
-def recv_data(sock: socket) -> bytes:
+def recv_data(sock: socket.socket) -> bytes:
     data = b''
     while True:
         try:
@@ -89,7 +89,7 @@ def recv_data(sock: socket) -> bytes:
     return data
 
 
-def recv_all(sock: socket, request: bool = True):
+def recv_all(sock: socket.socket, request: bool = True):
     bytestream = sock.recv(INITIAL_LENGTH)
     if bytestream:
         sock.settimeout(TIMEOUT)
@@ -165,9 +165,10 @@ def handle_cache_obj(req: Request, resp: Response, obj: bytes) -> None:
         print("[INFO] URL of problem is " + req.path)
 
 
-def handle_client(conn: socket, addr: str) -> None:
+def handle_client(conn: socket.socket, addr: str) -> None:
     print(f"[INFO] Client with address {addr} has initiated a connection.")
     connected = True
+    sock_open = True
     while connected:
         connected = False
         try:
@@ -181,13 +182,19 @@ def handle_client(conn: socket, addr: str) -> None:
                 else:
                     resp.connection = {"close"}
                 conn.send(bytestream)
-                print(f"[INFO] Client with address {addr} has terminated a connection.")
         except (ConnectionError, ConnectionResetError):
+            sock_open = False
             conn.close()
             print(f"[INFO] Client with address {addr} has terminated a connection.")
             break
-    conn.close()
-    print(f"[INFO] Client with address {addr} has terminated a connection.")
+        except Exception as e:
+            sock_open = False
+            conn.close()
+            print(f"[INFO] Client with address {addr} has terminated a connection.")
+            raise e
+    if sock_open:
+        conn.close()
+        print(f"[INFO] Client with address {addr} has terminated a connection.")
 
 
 def run_server():

@@ -26,7 +26,7 @@ def get_path_from_url(url: str, filename: str) -> str:
             return path + '/' + filename
 
 
-def add_to_cache(path: str, filename:str, obj: bytes) -> None:
+def add_to_cache(path: str, filename: str, obj: bytes) -> None:
     global cache_size, cache_min_heap, cache_dictionary
     size = len(obj)
     if path not in cache_dictionary:
@@ -42,6 +42,7 @@ def add_to_cache(path: str, filename:str, obj: bytes) -> None:
         new_position = cache_min_heap.increase_key(cache_dictionary[path][1], access_time)
         cache_dictionary[path] = access_time, new_position
         save_object_to_disk(path, filename, obj)
+    print("[INFO] Stop here")
 
 
 def delete_oldest_file() -> None:
