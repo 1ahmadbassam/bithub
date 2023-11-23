@@ -90,12 +90,10 @@ class Response:
         self.access_control_expose_headers = set()
         self.access_control_max_age = None
         self.upgrade_insecure_requests = None
-
         self.content_security_policy_report_only = {}
         self.feature_policy = {}
         # ------cookie related fields------
         self.set_cookie = set()
-
         # ------safety-mechanism: any unrecognized field is maintained------
         self.other = set()
 
