@@ -60,7 +60,7 @@ def get_date_string(date_time: datetime) -> str:
     return date_time.strftime(DATE_FORMAT)
 
 
-def format_param(name: str, param: object, var: str = None) -> str:
+def format_param(name: str, param: object, var: str = None, delim: str = ',') -> str:
     if not param:
         return None
     if param and isinstance(param, str):
@@ -69,7 +69,7 @@ def format_param(name: str, param: object, var: str = None) -> str:
     if param and isinstance(param, set):
         for x in param:
             field.append(x)
-            field.append(',')
+            field.append(delim)
             field.append(WHITESPACE)
         field.pop()
         field.pop()
@@ -78,21 +78,21 @@ def format_param(name: str, param: object, var: str = None) -> str:
             for x, sp in param.items():
                 if sp:
                     field.append(f"{str(x)};{str(var)}={str(sp)}")
-                    field.append(',')
+                    field.append(delim)
                     field.append(WHITESPACE)
                 else:
                     field.append(str(x))
-                    field.append(',')
+                    field.append(delim)
                     field.append(WHITESPACE)
         else:
             for x, sp in param.items():
                 if sp:
                     field.append(f"{str(x)}={str(sp)}")
-                    field.append(',')
+                    field.append(delim)
                     field.append(WHITESPACE)
                 else:
                     field.append(str(x))
-                    field.append(',')
+                    field.append(delim)
                     field.append(WHITESPACE)
         field.pop()
         field.pop()

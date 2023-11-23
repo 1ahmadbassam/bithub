@@ -1,5 +1,6 @@
 from httplib import http
 
+
 class Response:
 
     def __init__(self, status_code: int, status_phrase: str, http_ver: http.Version = http.Version.HTTP1) -> None:
@@ -14,17 +15,12 @@ class Response:
         # ------content-related response fields------
         self.accept = set()
         self.accept_ranges = set()
-        self.accept_charset = set()
-        self.accept_encoding = set()
-        self.accept_language = set()
         self.accept_patch = set()
-        self.accept_post = set()
         self.content_length = None
         self.content_type = None
         self.content_language = {}
         self.content_charset = {}
         self.content_encoding = set()
-        self.content_type_options = set()
         self.content_security_policy = {}
         self.x_content_type_options = None
         # ------cache-related response fields------
@@ -34,7 +30,6 @@ class Response:
         # ------proxy-related fields------
         self.proxy_connection = set()
         self.proxy_authenticate = set()
-        self.proxy_authorization = {}
         # ------fields used by modern browsers------
         self.access_control_allow_methods = set()
         self.access_control_allow_origin = set()
@@ -53,11 +48,9 @@ class Response:
         self.x_content_type_options = None
         self.accept_ch = None
         self.accept_ch_lifetime = None
-        self.non_standard_deprecated = None
         self.age = None
         self.allow = set()
         self.alt_svc = {}
-        self.alt_used = None
         self.authorization = None
         self.clear_site_data = set()
         self.content_disposition = None
@@ -65,79 +58,27 @@ class Response:
         self.content_location = None
         self.content_range = None
         self.critical_ch = None
-        self.experimental = None
-        self.device_memory = None
         self.digest = None
-        self.deprecated = None
         self.dnt = None
-        self.downlink = None
         self.dpr = None
-        self.early_data = None
-        self.ect = None
-        self.expect = None
         self.expires = None
-        self.forwarded = set()
-        self.from_ = None 
-        self.host = None
-        self.if_match = set()
-        self.if_modified_since = None
-        self.if_none_match = set()
-        self.if_range = None
-        self.if_unmodified_since = None
         self.large_allocation = None
-        self.link = set()
-        self.max_forwards = None
+        self.link = {}
         self.nel = {}
-        self.origin = None
         self.permissions_policy = set()
-        self.range = None
-        self.referer = None
         self.retry_after = None
-        self.rtt = None
-        self.save_data = None
-        self.sec_ch_prefers_color_scheme = None
-        self.sec_ch_prefers_reduced_motion = None
-        self.sec_ch_prefers_reduced_transparency = None
-        self.sec_ch_ua = None
-        self.sec_ch_ua_arch = None
-        self.sec_ch_ua_bitness = None
-        self.sec_ch_ua_full_version = None
-        self.sec_ch_ua_full_version_list = {}
-        self.sec_ch_ua_mobile = None
-        self.sec_ch_ua_model = None
-        self.sec_ch_ua_platform = None
-        self.sec_ch_ua_platform_version = None
-        self.sec_fetch_dest = None
-        self.sec_fetch_mode = None
-        self.sec_fetch_site = None
-        self.sec_fetch_user = None
-        self.sec_gpc = None
-        self.experimental_non_standard = None
-        self.sec_purpose = None
-        self.sec_websocket_accept = None
         self.server_timing = set()
-        self.service_worker_navigation_preload = None
         self.sourcemap = None
         self.supports_loading_mode = set()
-        self.te = None
         self.timing_allow_origin = None
         self.tk = None
         self.trailer = set()
         self.transfer_encoding = set()
-        self.user_agent = None
-        self.via = set()
-        self.viewport_width = None
         self.want_digest = set()
         self.warning = {}
-        self.width = None
         self.x_dns_prefetch_control = None
-        self.non_standard = None
-        self.x_forwarded_for = None
-        self.x_forwarded_host = None
-        self.x_forwarded_proto = None
         # ------policy and security related fields------
         self.referrer_policy = None
-        self.feature_policy = {}
         self.cross_origin_embedder_policy = None
         self.cross_origin_opener_policy = None
         self.cross_origin_resource_policy = None
@@ -148,13 +89,15 @@ class Response:
         self.access_control_allow_headers = set()
         self.access_control_expose_headers = set()
         self.access_control_max_age = None
-        self.access_control_request_headers = set()
-        self.access_control_request_method = None
-        self.content_security_policy_report_only = {}
         self.upgrade_insecure_requests = None
+
+        self.content_security_policy_report_only = {}
+        self.feature_policy = {}
         # ------cookie related fields------
-        self.cookie = {}
         self.set_cookie = set()
+
+        # ------safety-mechanism: any unrecognized field is maintained------
+        self.other = set()
 
     # ------ conn & keep-alive ------
     def set_conn_keep_alive(self) -> None:
@@ -333,18 +276,15 @@ class Response:
     def _line_referrer_policy(self) -> str:
         return http.format_param("Referrer-Policy", self.referrer_policy)
 
-    def _line_content_type_options(self) -> str:
-        return http.format_param("Content-Type-Options", self.content_type_options)
-    
     def _line_feature_policy(self) -> str:
-        return http.format_param("Feature-Policy", self.feature_policy)
-    
+        return http.format_param("Feature-Policy", self.feature_policy, None, ';')
+
     def _line_content_security_policy(self) -> str:
-        return http.format_param("Content-Security-Policy", self.content_security_policy)
-    
+        return http.format_param("Content-Security-Policy", self.content_security_policy, None, ';')
+
     def _line_cross_origin_embedder_policy(self) -> str:
         return http.format_param("Cross-Origin-Embedder-Policy", self.cross_origin_embedder_policy)
-    
+
     def _line_cross_origin_opener_policy(self) -> str:
         return http.format_param("Cross-Origin-Opener-Policy", self.cross_origin_opener_policy)
 
@@ -353,330 +293,150 @@ class Response:
 
     def _line_expect_ct(self) -> str:
         return http.format_param("Expect-CT", self.expect_ct)
-    
+
     def _line_strict_transport_security(self) -> str:
         return http.format_param("Strict-Transport-Security", self.strict_transport_security)
-    
+
     def _line_x_content_type_options(self) -> str:
         return http.format_param("X-Content-Type-Options", self.x_content_type_options)
-    
+
     def _line_x_powered_by(self) -> str:
         return http.format_param("X-Powered-By", self.x_powered_by)
-    
+
     def _line_x_content_security_policy(self) -> str:
-        return http.format_param("X-Content-Security-Policy", self.x_content_security_policy)
-    
+        return http.format_param("X-Content-Security-Policy", self.x_content_security_policy, None, ';')
+
     def _line_x_ua_compatible(self) -> str:
         return http.format_param("X-UA-Compatible", self.x_ua_compatible)
-    
+
     def _line_x_content_duration(self) -> str:
         return http.format_param("X-Content-Duration", self.x_content_duration)
-    
+
     def _line_x_content_security_policy_report_only(self) -> str:
-        return http.format_param("X-Content-Security-Policy-Report-Only", self.x_content_security_policy_report_only)
-    
+        return http.format_param("X-Content-Security-Policy-Report-Only", self.x_content_security_policy_report_only, None, ';')
+
     def _line_x_webkit_csp(self) -> str:
         return http.format_param("X-WebKit-CSP", self.x_webkit_csp)
-    
-    def _line_x_content_type_options(self) -> str:
-        return http.format_param("X-Content-Type-Options", self.x_content_type_options)
-    
+
     def _line_accept_ch(self) -> str:
         return http.format_param("Accept-CH", self.accept_ch)
 
     def _line_accept_ch_lifetime(self) -> str:
         return http.format_param("Accept-CH-Lifetime", self.accept_ch_lifetime)
-    
-    def _line_non_standard_deprecated(self) -> str:
-        return http.format_param("Non-Standard-Deprecated", self.non_standard_deprecated)
-    
-    def _line_accept_charset(self) -> str:
-        return http.format_param("Accept-Charset", self.accept_charset)
-    
-    def _line_accept_encoding(self) -> str:
-        return http.format_param("Accept-Encoding", self.accept_encoding)
-    
-    def _line_accept_language(self) -> str:
-        return http.format_param("Accept-Language", self.accept_language)
-    
+
     def _line_accept_patch(self) -> str:
         return http.format_param("Accept-Patch", self.accept_patch)
-    
-    def _line_accept_post(self) -> str:
-        return http.format_param("Accept-Post", self.accept_post)
-    
+
     def _line_access_control_allow_credentials(self) -> str:
         return http.format_param("Access-Control-Allow-Credentials", self.access_control_allow_credentials)
-    
+
     def _line_access_control_allow_headers(self) -> str:
         return http.format_param("Access-Control-Allow-Headers", self.access_control_allow_headers)
-    
+
     def _line_access_control_expose_headers(self) -> str:
         return http.format_param("Access-Control-Expose-Headers", self.access_control_expose_headers)
-    
+
     def _line_access_control_max_age(self) -> str:
         return http.format_param("Access-Control-Max-Age", self.access_control_max_age)
-    
-    def _line_access_control_request_headers(self) -> str:
-        return http.format_param("Access-Control-Request-Headers", self.access_control_request_headers)
-    
-    def _line_access_control_request_method(self) -> str:
-        return http.format_param("Access-Control-Request-Method", self.access_control_request_method)
-    
+
     def _line_age(self) -> str:
         return http.format_param("Age", self.age)
-    
+
     def _line_allow(self) -> str:
         return http.format_param("Allow", self.allow)
-    
+
     def _line_alt_svc(self) -> str:
         return http.format_param("Alt-Svc", self.alt_svc)
-    
-    def _line_alt_used(self) -> str:
-        return http.format_param("Alt-Used", self.alt_used)
-    
+
     def _line_authorization(self) -> str:
         return http.format_param("Authorization", self.authorization)
-    
+
     def _line_clear_site_data(self) -> str:
         return http.format_param("Clear-Site-Data", self.clear_site_data)
-    
+
     def _line_content_disposition(self) -> str:
         return http.format_param("Content-Disposition", self.content_disposition)
-    
+
     def _line_content_dpr(self) -> str:
         return http.format_param("Content-DPR", self.content_dpr)
-    
+
     def _line_content_location(self) -> str:
         return http.format_param("Content-Location", self.content_location)
-    
+
     def _line_content_range(self) -> str:
         return http.format_param("Content-Range", self.content_range)
-    
+
     def _line_content_security_policy_report_only(self) -> str:
-        return http.format_param("Content-Security-Policy-Report-Only", self.content_security_policy_report_only)
-    
-    def _line_cookie(self) -> str:
-        return http.format_param("Cookie", self.cookie)
-    
+        return http.format_param("Content-Security-Policy-Report-Only", self.content_security_policy_report_only, None, ';')
+
     def _line_critical_ch(self) -> str:
         return http.format_param("Critical-CH", self.critical_ch)
-    
-    def _line_device_memory(self) -> str:
-        return http.format_param("Device-Memory", self.device_memory)
-    
+
     def _line_digest(self) -> str:
         return http.format_param("Digest", self.digest)
-    
-    def _line_deprecated(self) -> str:
-        return http.format_param("Deprecated", self.deprecated)
-    
+
     def _line_dnt(self) -> str:
         return http.format_param("DNT", self.dnt)
-    
-    def _line_downlink(self) -> str:
-        return http.format_param("Downlink", self.downlink)
-    
+
     def _line_dpr(self) -> str:
         return http.format_param("DPR", self.dpr)
-    
-    def _line_early_data(self) -> str:
-        return http.format_param("Early-Data", self.early_data)
-    
-    def _line_ect(self) -> str:
-        return http.format_param("ECT", self.ect)
-    
-    def _line_expect(self) -> str:
-        return http.format_param("Expect", self.expect)
-    
+
     def _line_expires(self) -> str:
         return http.format_param("Expires", self.expires)
-    
-    def _line_forwarded(self) -> str:
-        return http.format_param("Forwarded", self.forwarded)
-    
-    def _line_from(self) -> str:
-        return http.format_param("From", self.from_)
-    
-    def _line_host(self) -> str:
-        return http.format_param("Host", self.host)
-    
-    def _line_if_match(self) -> str:
-        return http.format_param("If-Match", self.if_match)
-    
-    def _line_if_modified_since(self) -> str:
-        return http.format_param("If-Modified-Since", self.if_modified_since)
-    
-    def _line_if_none_match(self) -> str:
-        return http.format_param("If-None-Match", self.if_none_match)
-    
-    def _line_if_range(self) -> str:
-        return http.format_param("If-Range", self.if_range)
-    
-    def _line_if_unmodified_since(self) -> str:
-        return http.format_param("If-Unmodified-Since", self.if_unmodified_since)
-    
+
     def _line_large_allocation(self) -> str:
         return http.format_param("Large-Allocation", self.large_allocation)
-    
+
     def _line_link(self) -> str:
-        return http.format_param("Link", self.link)
-    
-    def _line_max_forwards(self) -> str:
-        return http.format_param("Max-Forwards", self.max_forwards)
-    
+        return http.format_param("Link", self.link, "rel")
+
     def _line_nel(self) -> str:
         return http.format_param("NEL", self.nel)
-    
-    def _line_origin(self) -> str:
-        return http.format_param("Origin", self.origin)
-    
+
     def _line_permissions_policy(self) -> str:
         return http.format_param("Permissions-Policy", self.permissions_policy)
-    
+
     def _line_proxy_authenticate(self) -> str:
         return http.format_param("Proxy-Authenticate", self.proxy_authenticate)
-    
-    def _line_proxy_authorization(self) -> str:
-        return http.format_param("Proxy-Authorization", self.proxy_authorization)
-    
-    def _line_range(self) -> str:
-        return http.format_param("Range", self.range)
-    
-    def _line_referer(self) -> str:
-        return http.format_param("Referer", self.referer)
-    
+
     def _line_retry_after(self) -> str:
         return http.format_param("Retry-After", self.retry_after)
-    
-    def _line_rtt(self) -> str:
-        return http.format_param("RTT", self.rtt)
-    
-    def _line_save_data(self) -> str:
-        return http.format_param("Save-Data", self.save_data)
-    
-    def _line_sec_ch_prefers_color_scheme(self) -> str:
-        return http.format_param("Sec-CH-Prefers-Color-Scheme", self.sec_ch_prefers_color_scheme)
-    
-    def _line_sec_ch_prefers_reduced_motion(self) -> str:
-        return http.format_param("Sec-CH-Prefers-Reduced-Motion", self.sec_ch_prefers_reduced_motion)
-    
-    def _line_sec_ch_prefers_reduced_transparency(self) -> str:
-        return http.format_param("Sec-CH-Prefers-Reduced-Transparency", self.sec_ch_prefers_reduced_transparency)
-    
-    def _line_sec_ch_ua(self) -> str:
-        return http.format_param("Sec-CH-UA", self.sec_ch_ua)
-    
-    def _line_sec_ch_ua_arch(self) -> str:
-        return http.format_param("Sec-CH-UA-Arch", self.sec_ch_ua_arch)
-    
-    def _line_sec_ch_ua_bitness(self) -> str:
-        return http.format_param("Sec-CH-UA-Bitness", self.sec_ch_ua_bitness)
-    
-    def _line_sec_ch_ua_full_version(self) -> str:
-        return http.format_param("Sec-CH-UA-Full-Version", self.sec_ch_ua_full_version)
-    
-    def _line_sec_ch_ua_full_version_list(self) -> str:
-        return http.format_param("Sec-CH-UA-Full-Version-List", self.sec_ch_ua_full_version_list)
-    
-    def _line_sec_ch_ua_mobile(self) -> str:
-        return http.format_param("Sec-CH-UA-Mobile", self.sec_ch_ua_mobile)
-    
-    def _line_sec_ch_ua_model(self) -> str:
-        return http.format_param("Sec-CH-UA-Model", self.sec_ch_ua_model)
-    
-    def _line_sec_ch_ua_platform(self) -> str:
-        return http.format_param("Sec-CH-UA-Platform", self.sec_ch_ua_platform)
-    
-    def _line_sec_ch_ua_platform_version(self) -> str:
-        return http.format_param("Sec-CH-UA-Platform-Version", self.sec_ch_ua_platform_version)
-    
-    def _line_sec_fetch_dest(self) -> str:
-        return http.format_param("Sec-Fetch-Dest", self.sec_fetch_dest)
-    
-    def _line_sec_fetch_mode(self) -> str:
-        return http.format_param("Sec-Fetch-Mode", self.sec_fetch_mode)
-    
-    def _line_sec_fetch_site(self) -> str:
-        return http.format_param("Sec-Fetch-Site", self.sec_fetch_site)
-    
-    def _line_sec_fetch_user(self) -> str:
-        return http.format_param("Sec-Fetch-User", self.sec_fetch_user)
-    
-    def _line_sec_gpc(self) -> str:
-        return http.format_param("Sec-GPC", self.sec_gpc)
-    
-    def _line_sec_purpose(self) -> str:
-        return http.format_param("Sec-Purpose", self.sec_purpose)
-    
-    def _line_sec_websocket_accept(self) -> str:
-        return http.format_param("Sec-WebSocket-Accept", self.sec_websocket_accept)
-    
+
     def _line_server_timing(self) -> str:
         return http.format_param("Server-Timing", self.server_timing)
-    
-    def _line_service_worker_navigation_preload(self) -> str:
-        return http.format_param("Service-Worker-Navigation-Preload", self.service_worker_navigation_preload)
-    
+
     def _line_set_cookie(self) -> str:
         return http.format_param("Set-Cookie", self.set_cookie)
-    
+
     def _line_sourcemap(self) -> str:
         return http.format_param("Sourcemap", self.sourcemap)
-    
+
     def _line_supports_loading_mode(self) -> str:
         return http.format_param("Supports-Loading-Mode", self.supports_loading_mode)
 
-    def _line_te(self) -> str:
-        return http.format_param("TE", self.te)
-    
     def _line_timing_allow_origin(self) -> str:
         return http.format_param("Timing-Allow-Origin", self.timing_allow_origin)
-    
+
     def _line_tk(self) -> str:
         return http.format_param("Tk", self.tk)
-    
+
     def _line_trailer(self) -> str:
         return http.format_param("Trailer", self.trailer)
-    
+
     def _line_transfer_encoding(self) -> str:
         return http.format_param("Transfer-Encoding", self.transfer_encoding)
-    
+
     def _line_upgrade_insecure_requests(self) -> str:
         return http.format_param("Upgrade-Insecure-Requests", self.upgrade_insecure_requests)
-    
-    def _line_user_agent(self) -> str:
-        return http.format_param("User-Agent", self.user_agent)
-    
-    def _line_via(self) -> str:
-        return http.format_param("Via", self.via)
-    
-    def _line_viewport_width(self) -> str:
-        return http.format_param("Viewport-Width", self.viewport_width)
-    
+
     def _line_want_digest(self) -> str:
         return http.format_param("Want-Digest", self.want_digest)
-    
+
     def _line_warning(self) -> str:
         return http.format_param("Warning", self.warning)
-    
-    def _line_width(self) -> str:
-        return http.format_param("Width", self.width)
-    
+
     def _line_x_dns_prefetch_control(self) -> str:
         return http.format_param("X-DNS-Prefetch-Control", self.x_dns_prefetch_control)
-    
-    def _line_x_forwarded_for(self) -> str:
-        return http.format_param("X-Forwarded-For", self.x_forwarded_for)
-    
-    def _line_x_forwarded_host(self) -> str:
-        return http.format_param("X-Forwarded-Host", self.x_forwarded_host)
-    
-    def _line_x_forwarded_proto(self) -> str:
-        return http.format_param("X-Forwarded-Proto", self.x_forwarded_proto)
-    
-    def _line_non_standard(self) -> str:
-        return http.format_param("Non-Standard", self.non_standard)
 
     def __str__(self) -> str:
         response = [self.get_response_statement()]
@@ -685,6 +445,8 @@ class Response:
             if line:
                 response.append(line)
         response.append(http.DELIMITER)
+        if self.other:
+            response.append(http.DELIMITER.join(self.other))
         return ''.join(response)
 
 
@@ -696,11 +458,11 @@ def parse_response_line(line: str) -> (int, str, float):
 
 
 def __parse_http_line(line: str, response_obj: Response) -> None:
+    if not line or not response_obj:
+        return
+    keyword, contents = line.removesuffix(http.DELIMITER).split(':', 1)
+    keyword = keyword.lower().strip().replace('-', '_')
     try:
-        if not line or not response_obj:
-            return
-        keyword, contents = line.removesuffix(http.DELIMITER).split(':', 1)
-        keyword = keyword.lower().strip().replace('-', '_')
         if keyword == "keep_alive":
             if ',' not in contents:
                 response_obj.keep_alive["timeout"] = contents.strip()
@@ -712,7 +474,7 @@ def __parse_http_line(line: str, response_obj: Response) -> None:
             for x in contents.split(','):
                 res = x.split('=', 1)
                 if len(res) > 1:
-                    [param, value] = x.split('=', 1)
+                    [param, value] = res
                     response_obj.cache_control[param.strip()] = value.strip()
                 else:
                     response_obj.cache_control[res[0].strip()] = None
@@ -748,32 +510,47 @@ def __parse_http_line(line: str, response_obj: Response) -> None:
                 response_obj.www_authenticate[contents.strip()] = None
         elif keyword == "from":
             response_obj.from_ = contents.strip()
-        elif keyword == "feature_policy" or keyword == "content_security_policy" or keyword == "x_content_security_policy" or keyword == "x_content_security_policy_report_only" or keyword == "x_webkit_csp" or keyword == "proxy_authorization" or keyword == "content_security_policy_report_only":
-            res={}
+        elif (keyword == "feature_policy"
+              or keyword == "content_security_policy"
+              or keyword == "x_content_security_policy"
+              or keyword == "x_content_security_policy_report_only"
+              or keyword == "x_webkit_csp"
+              or keyword == "proxy_authorization"
+              or keyword == "content_security_policy_report_only"):
+            keyword_dict = getattr(response_obj, keyword)
             for x in contents.split(";"):
-                [feature, policy] = x.split(" ")
-                response_obj.feature_policy[feature.strip()] = policy.strip()
-            setattr(response_obj, keyword, res)
+                [feature, policy] = x.strip().split(http.WHITESPACE, 1)
+                keyword_dict[feature.strip()] = policy.strip()
         elif keyword == "warning":
-            res={}
+            res = {}
             contents = contents.split(",")
             for x in contents:
                 [code, text] = x.split("-", 1)
                 res[code.strip()] = text.strip()
             setattr(response_obj, keyword, res)
         else:
-            try:
-                class_var = getattr(response_obj, keyword)
-                if isinstance(class_var, set):
-                    setattr(response_obj, keyword, {x.strip() for x in contents.split(',')})
-                elif isinstance(class_var, dict):
-                    return
-                else:
-                    setattr(response_obj, keyword, contents.strip())
-            except AttributeError:
-                raise ValueError(f"[ERR] Unknown HTTP header field for keyword {keyword}.")
+            class_var = getattr(response_obj, keyword)
+            if isinstance(class_var, set):
+                setattr(response_obj, keyword, {x.strip() for x in contents.split(',')})
+            elif isinstance(class_var, dict):
+                try:
+                    keyword_dict = getattr(response_obj, keyword)
+                    for x in contents.split(','):
+                        res = x.split('=', 1)
+                        if len(res) > 1:
+                            [param, value] = res
+                            keyword_dict[param.strip()] = value.strip()
+                        else:
+                            keyword_dict[res[0].strip()] = None
+                except ValueError:
+                    pass
+            else:
+                setattr(response_obj, keyword, contents.strip())
     except Exception as e:
-        raise ValueError(f"[ERR] Failed to parse HTTP header line {line}. {e}")
+        print(f"[ERR] Unknown keyword for parse {keyword}.")
+        print(f"[ERR] Line which caused this exception is {line}.")
+        print(e)
+        response_obj.other.add(line)
 
 
 def parse(response: str) -> Response:
@@ -783,12 +560,10 @@ def parse(response: str) -> Response:
         response = response.split(http.DELIMITER)
         res_status, res_message, http_ver = parse_response_line(response[0])
         if not res_status or not res_message:
-            return None
+            raise ValueError("[ERR] Not a response.")
         obj = Response(res_status, res_message, http_ver)
-
         for line in response[1:]:
             __parse_http_line(line, obj)
         return obj
     except Exception as e:
         raise ValueError(f"[ERR] Failed to parse HTTP response. {e}")
-        
