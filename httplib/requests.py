@@ -536,11 +536,11 @@ def parse_command_line(line: str) -> (str, str, float):
 
 
 def __parse_http_line(line: str, request_obj: Request) -> None:
+    if not line or not request_obj:
+        return
+    keyword, contents = line.removesuffix(http.DELIMITER).split(':', 1)
+    keyword = keyword.lower().strip().replace('-', '_')
     try:
-        if not line or not request_obj:
-            return
-        keyword, contents = line.removesuffix(http.DELIMITER).split(':', 1)
-        keyword = keyword.lower().strip().replace('-', '_')
         if keyword == "keep_alive":
             if ',' not in contents:
                 request_obj.keep_alive["timeout"] = contents.strip()
@@ -619,4 +619,4 @@ def parse(request: str) -> Request:
             __parse_http_line(line, request_obj)
         return request_obj
     except (AttributeError, ValueError) as e:
-        raise ValueError(f"[ERR] Failed to parse HTTP response. {e}")
+        raise ValueError(f"[ERR] Failed to parse HTTP response. {e}")
