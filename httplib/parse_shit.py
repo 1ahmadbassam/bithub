@@ -95,11 +95,8 @@ for i in range(len(getshit)):
     getshit[i] = getshit[i].strip().lower().replace("-","_").replace(" ","_")
 
 
-parse= '''self.accept_charset = set()
-        self.accept_encoding = set()
-        self.accept_language = set()
-        self.accept_post = set()
-        self.content_type_options = set()
+parse= '''self.accept_post = set()
+        self.content_type_options = None
         self.proxy_authorization = None
         self.access_control_request_headers = set()
         self.access_control_request_method = None
@@ -108,19 +105,15 @@ parse= '''self.accept_charset = set()
         self.downlink = None
         self.early_data = None
         self.ect = None
-        self.expect = None
-        self.from_ = None 
-        self.host = None
+        self.expect = set()
+        self.from_ = None
         self.if_match = set()
-        self.if_modified_since = None
-        self.if_none_match = set()
         self.if_range = None
         self.if_unmodified_since = None
         self.forwarded = set()
         self.max_forwards = None
         self.origin = None
         self.range = None
-        self.referer = None
         self.rtt = None
         self.save_data = None
         self.sec_ch_prefers_color_scheme = None
@@ -130,7 +123,7 @@ parse= '''self.accept_charset = set()
         self.sec_ch_ua_arch = None
         self.sec_ch_ua_bitness = None
         self.sec_ch_ua_full_version = None
-        self.sec_ch_ua_full_version_list = None
+        self.sec_ch_ua_full_version_list = set()
         self.sec_ch_ua_mobile = None
         self.sec_ch_ua_model = None
         self.sec_ch_ua_platform = None
@@ -139,46 +132,70 @@ parse= '''self.accept_charset = set()
         self.sec_fetch_mode = None
         self.sec_fetch_site = None
         self.sec_fetch_user = None
-        self.sec_gpc = None
         self.sec_purpose = None
         self.sec_websocket_accept = None
         self.service_worker_navigation_preload = None
-        self.te = None
-        self.user_agent = None
-        self.via = set()
+        self.te = set()
+        self.via = None
         self.viewport_width = None
         self.width = None
         self.x_forwarded_for = None
         self.x_forwarded_host = None
         self.x_forwarded_proto = None
-'''
+        self.a_im = set()
+        self.accept_datetime = None
+        self.authorization = None
+        self.content_encoding = set()
+        self.content_type = None
+        self.content_md5 = None
+        self.cookie = set()
+        self.http2_settings = None
+        self.pragma = None
+        self.prefer = set()
+        self.trailer = set()
+        self.transfer_encoding = set()
+        self.upgrade = None
+        self.warning = set()
+        self.x_requested_with = None
+        self.front_end_https = None
+        self.x_http_method_override = None
+        self.x_att_deviceid = None
+        self.x_wap_profile = None
+        self.x_uidh = None
+        self.x_csrf_token = None
+        self.x_request_id = None
+        self.x_correlation_id = None
+        self.correlation_id = None
+        self.correlation_id = None'''
 
 parse = parse.split("\n")
 for i in range(len(parse)):
-    parse[i] = parse[i].strip().split("=")[0].strip().removeprefix("self.")
-
+    parse[i] = parse[i].strip().split("=")[0].strip().removeprefix("self.") if parse[i].strip().split("=")[1].strip() == "set()" else None
+for i in range(len(parse)):
+    if parse[i]:
+        print(parse[i])
 for shit in parse:
     found=False
     for shit2 in stuff:
-        if shit==shit2:
+        if shit==shit2 and shit.strip()!="":
             found=True
             break
     if not found:
-        print(shit)
+        pass #print(shit)
 
 for shit in getshit:
     found=False
     for shit2 in stuff:
-        if shit==shit2:
+        if shit==shit2 and shit.strip()!="":
             found=True
             break
     for shit2 in parse:
-        if shit==shit2:
+        if shit==shit2 and shit.strip()!="":
             found=True
             break
     if not found:
-        print(shit)
-content length and no transfer encoding
-no content length but tranfer encoding is chucnked
-no content length nor chuncked => timeout
-handle compression and decompression in gzip and zip
+        pass#print(shit)
+#content length and no transfer encoding
+#no content length but tranfer encoding is chucnked
+#no content length nor chuncked => timeout
+#handle compression and decompression in gzip and zip

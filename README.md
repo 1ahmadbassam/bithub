@@ -16,6 +16,7 @@ Resources:
 - https://builtin.com/data-science/python-socket
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Warning
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
+- https://wiki.froth.zone/wiki/List_of_HTTP_header_fields?lang=en#Request_fields
 
 Steps followed:
 1) We created our own http library where we created the 2 classes Request and Response that parse the http requests and responses into Request and Responses objects to be able to manipulate them.

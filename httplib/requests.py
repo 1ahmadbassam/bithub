@@ -32,6 +32,9 @@ class Request:
         self.accept_language = {}
         self.accept_charset = {}
         self.accept_encoding = set()
+        self.content_type_options = None
+        self.content_type = None
+        self.content_md5 = None
         # ------cache-related request fields------
         self.cache_control = {}
         self.if_modified_since = None
@@ -39,6 +42,7 @@ class Request:
         self.date = None
         # ------proxy-related fields------
         self.proxy_connection = set()
+        self.proxy_authorization = None
         # ------fields used by older browsers------
         self.ua_pixels = None
         self.ua_color = None
@@ -49,23 +53,25 @@ class Request:
         self.upgrade_insecure_requests = None
         self.sec_gpc = None
         self.accept = None
-        # ------new fields------
-        self.accept_post = None
-        self.content_type_options = None
-        self.proxy_authorization = None
-        self.access_control_request_headers = None
+        # ------policy and security related fields------
+        self.access_control_request_headers = set()
         self.access_control_request_method = None
+        self.authorization = None
+        self.content_encoding = set()
+        self.http2_settings = None
+        # ------fields used by modern browsers and other fields------
+        self.accept_post = set()
         self.alt_used = None
         self.device_memory = None
         self.downlink = None
         self.early_data = None
         self.ect = None
-        self.expect = None
+        self.expect = set()
         self.from_ = None
-        self.if_match = None
+        self.if_match = set()
         self.if_range = None
         self.if_unmodified_since = None
-        self.forwarded = None
+        self.forwarded = {}
         self.max_forwards = None
         self.origin = None
         self.range = None
@@ -78,7 +84,7 @@ class Request:
         self.sec_ch_ua_arch = None
         self.sec_ch_ua_bitness = None
         self.sec_ch_ua_full_version = None
-        self.sec_ch_ua_full_version_list = None
+        self.sec_ch_ua_full_version_list = set()
         self.sec_ch_ua_mobile = None
         self.sec_ch_ua_model = None
         self.sec_ch_ua_platform = None
@@ -90,27 +96,21 @@ class Request:
         self.sec_purpose = None
         self.sec_websocket_accept = None
         self.service_worker_navigation_preload = None
-        self.te = None
+        self.te = set()
         self.via = None
         self.viewport_width = None
         self.width = None
         self.x_forwarded_for = None
         self.x_forwarded_host = None
         self.x_forwarded_proto = None
-        self.a_im = None
+        self.a_im = set()
         self.accept_datetime = None
-        self.authorization = None
-        self.content_encoding = None
-        self.content_type = None
-        self.content_md5 = None
-        self.cookie = None
-        self.http2_settings = None
         self.pragma = None
-        self.prefer = None
-        self.trailer = None
-        self.transfer_encoding = None
+        self.prefer = {}
+        self.trailer = set()
+        self.transfer_encoding = set()
         self.upgrade = None
-        self.warning = None
+        self.warning = {}
         self.x_requested_with = None
         self.front_end_https = None
         self.x_http_method_override = None
@@ -122,8 +122,12 @@ class Request:
         self.x_correlation_id = None
         self.correlation_id = None
         self.correlation_id = None
+        # ------cookie related fields------
+        self.cookie = {}
+        # ------safety-mechanism: any unrecognized field is maintained------
+        self.other = set()
 
-    # ------ conn & keep-alive ------
+    # ------conn & keep-alive------
     def set_conn_keep_alive(self) -> None:
         if "close" in self.connection:
             self.connection.remove("close")
@@ -335,7 +339,7 @@ class Request:
         return http.format_param("If-Unmodified-Since", self.if_unmodified_since)
 
     def _line_forwarded(self) -> str:
-        return http.format_param("Fowarded", self.forwarded)
+        return http.format_param("Forwarded", self.forwarded)
 
     def _line_max_forwards(self) -> str:
         return http.format_param("Max-Forwards", self.max_forwards)
@@ -505,6 +509,9 @@ class Request:
             line = getattr(self, func)()
             if line:
                 request.append(line)
+        if self.other:
+            request.append(http.DELIMITER.join(self.other))
+            request.append(http.DELIMITER)
         request.append(http.DELIMITER)
         return ''.join(request)
 
@@ -563,6 +570,18 @@ def __parse_http_line(line: str, request_obj: Request) -> None:
                 request_obj.if_modified_since = (http.get_datetime(date.strip()), int(length))
             else:
                 request_obj.if_modified_since = (http.get_datetime(res[0].strip()), 0)
+        elif keyword == "warning":
+            res = {}
+            contents = contents.split(",")
+            for x in contents:
+                [code, text] = x.split("-", 1)
+                res[code.strip()] = text.strip()
+            setattr(request_obj, keyword, res)
+        elif keyword == "proxy_authorization":
+            keyword_dict = getattr(request_obj, keyword)
+            for x in contents.split(";"):
+                [feature, policy] = x.strip().split(http.WHITESPACE, 1)
+                keyword_dict[feature.strip()] = policy.strip()
         else:
             try:
                 class_var = getattr(request_obj, keyword)
@@ -583,7 +602,10 @@ def __parse_http_line(line: str, request_obj: Request) -> None:
             except AttributeError:
                 raise ValueError(f"[ERR] Unknown HTTP header field for keyword {keyword}.")
     except Exception as e:
-        raise ValueError(f"[ERR] Failed to parse HTTP line {line}. {e}")
+        print(f"[ERR] Unknown keyword for parse {keyword}.")
+        print(f"[ERR] Line which caused this exception is {line}.")
+        print(e)
+        request_obj.other.add(line)
 
 
 def parse(request: str) -> Request:
@@ -596,5 +618,5 @@ def parse(request: str) -> Request:
         for line in request[1:]:
             __parse_http_line(line, request_obj)
         return request_obj
-    except Exception as e:
-        raise ValueError(f"[ERR] Failed to parse request. {e}")
+    except (AttributeError, ValueError) as e:
+        raise ValueError(f"[ERR] Failed to parse HTTP response. {e}")

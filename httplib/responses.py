@@ -30,7 +30,7 @@ class Response:
         # ------proxy-related fields------
         self.proxy_connection = set()
         self.proxy_authenticate = set()
-        # ------fields used by modern browsers------
+        # ------fields used by modern browsers and other fields------
         self.access_control_allow_methods = set()
         self.access_control_allow_origin = set()
         self.upgrade = set()
@@ -507,14 +507,11 @@ def __parse_http_line(line: str, response_obj: Response) -> None:
                     x.strip() for x in params.split(',')}
             else:
                 response_obj.www_authenticate[contents.strip()] = None
-        elif keyword == "from":
-            response_obj.from_ = contents.strip()
         elif (keyword == "feature_policy"
               or keyword == "content_security_policy"
               or keyword == "x_content_security_policy"
               or keyword == "x_content_security_policy_report_only"
               or keyword == "x_webkit_csp"
-              or keyword == "proxy_authorization"
               or keyword == "content_security_policy_report_only"):
             keyword_dict = getattr(response_obj, keyword)
             for x in contents.split(";"):
