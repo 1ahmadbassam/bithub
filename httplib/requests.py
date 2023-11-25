@@ -37,7 +37,7 @@ class Request:
         self.content_md5 = None
         # ------cache-related request fields------
         self.cache_control = {}
-        self.if_modified_since = None
+        self.if_modified_since = tuple()
         self.if_none_match = set()
         self.date = None
         # ------proxy-related fields------

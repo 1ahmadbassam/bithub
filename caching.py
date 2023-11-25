@@ -1,9 +1,10 @@
+import datetime
 import os
 import time
 import pickle
 from min_heap import MinHeap, Pair
 
-#need to check if caching is allowed
+# need to check if caching is allowed
 
 CACHE_DIRECTIVE = "cache/"
 HEAP_MAX_SIZE = 10000
@@ -31,6 +32,13 @@ def load_globals():
         print("[INFO] Cache loaded.")
     else:
         print("[WARNING] Cache not found. This is normal if you are running the script for the first time.")
+        os.makedirs(CACHE_DIRECTIVE, exist_ok=True)
+        with open(CACHE_SIZE_FILE, "wb") as file:
+            file.write(pickle.dumps(cache_size))
+        with open(CACHE_MIN_HEAP_FILE, "wb") as file:
+            file.write(pickle.dumps(cache_min_heap))
+        with open(CACHE_DICTIONARY_FILE, "wb") as file:
+            file.write(pickle.dumps(cache_dictionary))
 
 
 def save_globals():
@@ -45,7 +53,7 @@ def save_globals():
 
 
 def get_current_time() -> int:
-    return int(time.time() * 1000)
+    return int(time.time())
 
 
 def get_path_from_url(url: str, filename: str) -> str:
@@ -59,11 +67,11 @@ def get_path_from_url(url: str, filename: str) -> str:
             return path + '/' + filename
 
 
-def add_to_cache(path: str, filename: str, obj: bytes) -> None:
+def add_to_cache(path: str, filename: str, obj: bytes, modified: datetime.datetime) -> None:
     global cache_size, cache_min_heap, cache_dictionary
     size = len(obj)
     if path not in cache_dictionary:
-        while cache_size + size > DISK_MAX_SIZE and cache_min_heap.size == cache_min_heap.maxsize:
+        while cache_size + size > DISK_MAX_SIZE or cache_min_heap.size == cache_min_heap.maxsize:
             delete_oldest_file()
         cache_size += size
         access_time = get_current_time()
@@ -75,14 +83,36 @@ def add_to_cache(path: str, filename: str, obj: bytes) -> None:
         new_position = cache_min_heap.increase_key(cache_dictionary[path][1], access_time)
         cache_dictionary[path] = access_time, new_position
         save_object_to_disk(path, filename, obj)
-    print("[INFO] Stop here")
+    update_times(path, access_time, modified)
+
+
+def retrieve_from_cache(path: str):
+    if path in cache_dictionary:
+        access_time = get_current_time()
+        new_position = cache_min_heap.increase_key(cache_dictionary[path][1], access_time)
+        cache_dictionary[path] = access_time, new_position
+        obj = get_cache_object(path)
+        modified = datetime.datetime.fromtimestamp(get_file_modified_date(path))
+        return obj, modified
+    else:
+        return None, None
+
+
+def update_times(path: str, access_time: int, modified: datetime.datetime):
+    path = CACHE_DIRECTIVE + path
+    if not modified:
+        os.utime(path, (access_time, access_time))
+    else:
+        os.utime(path, (access_time, modified.timestamp()))
 
 
 def delete_oldest_file() -> None:
     global cache_size, cache_min_heap, cache_dictionary
     oldest_file = cache_min_heap.extract()
-    cache_size -= os.stat(oldest_file).st_size
-    del cache_dictionary[oldest_file]
+    cache_size -= get_file_size(oldest_file.value)
+    delete_object_from_disk(oldest_file.value)
+    del cache_dictionary[oldest_file.value]
+    print(f"[INFO] Deleted {oldest_file.value} from cache.")
 
 
 def save_object_to_disk(web_url: str, filename: str, obj: bytes) -> None:
@@ -92,10 +122,39 @@ def save_object_to_disk(web_url: str, filename: str, obj: bytes) -> None:
         file.write(obj)
 
 
+def delete_object_from_disk(path: str):
+    path = CACHE_DIRECTIVE + path
+    os.remove(path)
+    path = get_previous_directory(path)
+    while os.path.exists(path) and len(os.listdir(path)) == 0:
+        os.rmdir(path)
+        path = get_previous_directory(path)
+
+
+def get_previous_directory(path: str):
+    path = path[::-1]
+    path = path.split("/", 1)
+    if len(path) > 1:
+        path = path[1]
+    else:
+        path = path[0]
+    return path[::-1]
+
+
 def get_cache_object(path: str) -> bytes:
     path = CACHE_DIRECTIVE + path
     with open(path, "rb") as file:
         return file.read()
+
+
+def get_file_modified_date(path: str):
+    path = CACHE_DIRECTIVE + path
+    return os.path.getmtime(path)
+
+
+def get_file_size(path: str):
+    path = CACHE_DIRECTIVE + path
+    return os.stat(path).st_size
 
 # add a size variable for the cache and when it reaches a certain size, delete the oldest file
 # use os.remove(path) to remove the file

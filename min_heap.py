@@ -10,17 +10,17 @@ class Pair:
 
 # Function to return the position of parent for the node currently at pos
 def _parent(pos: int) -> int:
-    return pos // 2
+    return (pos - 1) // 2
 
 
 # Function to return the position of the left child for the node currently at pos
 def _left_child(pos: int) -> int:
-    return 2 * pos
+    return 2 * pos + 1
 
 
 # Function to return the position of the right child for the node currently at pos
 def _right_child(pos: int) -> int:
-    return (2 * pos) + 1
+    return (2 * pos) + 2
 
 
 class MinHeap:
@@ -39,8 +39,8 @@ class MinHeap:
 
         # If the node is a non-leaf node and greater than any of its child 
         if not self.is_leaf(pos) and self.heap[pos]:
-            if ((self.heap[_left_child(pos)] and self.heap[pos].key > self.heap[_left_child(pos)].key)
-                    or (self.heap[_right_child(pos)] and self.heap[pos].key > self.heap[_right_child(pos)].key)):
+            if ((_left_child(pos) < self.maxsize and self.heap[_left_child(pos)] and self.heap[pos].key > self.heap[_left_child(pos)].key)
+                    or (_right_child(pos) < self.maxsize and self.heap[_right_child(pos)] and self.heap[pos].key > self.heap[_right_child(pos)].key)):
 
                 # Swap with the left child and heapify the left child 
                 if (self.heap[_left_child(pos)]
@@ -85,7 +85,7 @@ class MinHeap:
         if not self.heap[0]:
             raise ValueError("[ERR] Access on an empty heap.")
         popped = self.heap[0]
-        self.heap[0] = self.heap[self.size]
+        self.heap[0] = self.heap[self.size - 1]
         self.size -= 1
         self.heapify(0)
         return popped
