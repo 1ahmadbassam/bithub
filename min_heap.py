@@ -10,17 +10,17 @@ class Pair:
 
 # Function to return the position of parent for the node currently at pos
 def _parent(pos: int) -> int:
-    return (pos - 1) // 2
+    return pos // 2
 
 
 # Function to return the position of the left child for the node currently at pos
 def _left_child(pos: int) -> int:
-    return 2 * pos + 1
+    return 2 * pos
 
 
 # Function to return the position of the right child for the node currently at pos
 def _right_child(pos: int) -> int:
-    return (2 * pos) + 2
+    return (2 * pos) + 1
 
 
 class MinHeap:

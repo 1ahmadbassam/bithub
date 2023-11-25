@@ -5,6 +5,7 @@ Tools and libraries used:
 - Python 3.11
 - tkinter and custom tkinter
 - os, time, datetime, socket, threading
+- pickle
 
 Resources:
 - https://scribe.rip/@miguendes/how-to-check-if-a-string-is-a-valid-url-in-python-fb0584aab549
@@ -34,3 +35,7 @@ Extra Features:
   - a maximum of 10 hosts using the server at the same time
 - Implemented a graphical user interface that displays all required and additional information.
 - To secure and access the GUI, users must create an account and authenticate their sign in which is done using a secure hashing system.
+- Users can choose to run the proxy server as well as exist and terminate the proxy server without the need for terminal/cmd interference.
+- Handle all 4 main commands: GET, POST, PUT, HEAD
+- Handle all file types: html, gif, css
+- Handling all cases of cache control: 
