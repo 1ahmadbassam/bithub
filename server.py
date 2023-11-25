@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 import caching
 from httplib import http
@@ -48,7 +49,7 @@ def connect_to_external_server(client_to_origin: socket.socket, req: Request) ->
 def handle_cache_obj(req: Request, resp: Response, cache_obj: bytes, resp_obj: bytes) -> bytes:
     filename = req.get_obj_filename()
     if resp.status_code == 200 and "no-store" not in resp.cache_control:
-        caching.add_to_cache(caching.get_path_from_url(req.path, filename), filename, resp_obj, resp.last_modified[0])
+        caching.add_to_cache(caching.get_path_from_url(req.path, filename), filename, resp_obj, resp.last_modified[0] if resp.last_modified else time.time())
     elif resp.status_code == 304:
         print(f"[INFO] Object {req.path} not modified.")
         print(f"[INFO] Object retrieved from cache.")
