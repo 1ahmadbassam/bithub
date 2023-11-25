@@ -1,14 +1,12 @@
 import socket
 import threading
-import atexit
-
-from httplib import http
-from httplib.requests import __parse_http_line as parse_http_line, parse as parse_request
-from httplib.requests import Request
-from httplib.responses import parse as parse_response
-from httplib.responses import Response
 
 import caching
+from httplib import http
+from httplib.requests import Request
+from httplib.requests import __parse_http_line as parse_http_line, parse as parse_request
+from httplib.responses import Response
+from httplib.responses import parse as parse_response
 
 PORT = 8080
 SERVER = ""
@@ -105,7 +103,7 @@ def recv_all(sock: socket.socket, request: bool = True):
                 data, resume, trailer = get_data_from_chunked(initial_data, True)
             else:
                 data, resume, trailer = get_data_from_chunked(initial_data)
-            if resume: #shouldnt it be while loop?
+            if resume:
                 if primary_obj.trailer:
                     part, trailer = recv_transfer_encoding_data(sock, True)
                 else:
@@ -150,17 +148,12 @@ def get_initial_data_bytestream(bytestream: bytes) -> (str, bytes):
 
 
 def connect_to_external_server(req: Request) -> (Response, bytes, bytes):
-    #need to check if cached
-    if req.path not in  caching.cache_dictionary:
-        client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_to_origin.connect((req.host, 80))
-        client_to_origin.send(str(req).encode(http.Charset.ASCII))
-        resp, obj, bytestream = recv_all(client_to_origin, False)
-        print(resp)
-        handle_cache_obj(req, resp, obj)
-    else:
-        pass
-        #need to get cached object but first need to send conditional get to server
+    client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_to_origin.connect((req.host, 80))
+    client_to_origin.send(str(req).encode(http.Charset.ASCII))
+    resp, obj, bytestream = recv_all(client_to_origin, False)
+    print(resp)
+    handle_cache_obj(req, resp, obj)
     return resp, obj, bytestream
 
 
@@ -185,7 +178,7 @@ def handle_client(conn: socket.socket, addr: str) -> None:
             print(req)
             if req_bytestream:
                 resp, obj, bytestream = connect_to_external_server(req)
-                
+
                 if "keep-alive" in req.connection and "keep-alive" in resp.connection:
                     connected = True
                 else:
@@ -197,7 +190,6 @@ def handle_client(conn: socket.socket, addr: str) -> None:
             print(f"[INFO] Client with address {addr} has terminated a connection.")
             break
         except Exception as e:
-            sock_open = False
             conn.close()
             print(f"[INFO] Client with address {addr} has terminated a connection.")
             raise e
