@@ -1,14 +1,12 @@
 import socket
 import threading
-import atexit
-
-from httplib import http
-from httplib.requests import __parse_http_line as parse_http_line, parse as parse_request
-from httplib.requests import Request
-from httplib.responses import parse as parse_response
-from httplib.responses import Response
 
 import caching
+from httplib import http
+from httplib.requests import Request
+from httplib.requests import __parse_http_line as parse_http_line, parse as parse_request
+from httplib.responses import Response
+from httplib.responses import parse as parse_response
 
 PORT = 8080
 SERVER = ""
@@ -22,7 +20,6 @@ server.bind(ADDR)
 
 
 def get_data_from_chunked(bytestream: bytes, trailer: bool = False) -> (bytes, bool, bytes):
-    print(bytestream)
     curr_length = 0
     data = b''
     i = 0
@@ -91,10 +88,10 @@ def recv_data(sock: socket.socket) -> bytes:
 
 
 def recv_all(sock: socket.socket, request: bool = True):
-    bytestream = sock.recv(INITIAL_LENGTH)
-    if bytestream:
+    initial_bytestream = sock.recv(INITIAL_LENGTH)
+    if initial_bytestream:
         sock.settimeout(TIMEOUT)
-        header, initial_data = get_initial_data_bytestream(bytestream)
+        header, initial_data = get_initial_data_bytestream(initial_bytestream)
         # get request/response obj
         if request:
             primary_obj = parse_request(header)
@@ -105,7 +102,7 @@ def recv_all(sock: socket.socket, request: bool = True):
                 data, resume, trailer = get_data_from_chunked(initial_data, True)
             else:
                 data, resume, trailer = get_data_from_chunked(initial_data)
-            if resume: #shouldnt it be while loop?
+            if resume:
                 if primary_obj.trailer:
                     part, trailer = recv_transfer_encoding_data(sock, True)
                 else:
@@ -122,9 +119,8 @@ def recv_all(sock: socket.socket, request: bool = True):
         else:
             data = initial_data
             data += recv_data(sock)
-        bytestream += data
-        return primary_obj, data, bytestream
-    return None, None, None
+        return primary_obj, data
+    return None, None
 
 
 def get_initial_data_bytestream(bytestream: bytes) -> (str, bytes):
@@ -150,18 +146,13 @@ def get_initial_data_bytestream(bytestream: bytes) -> (str, bytes):
 
 
 def connect_to_external_server(req: Request) -> (Response, bytes, bytes):
-    #need to check if cached
-    if req.path not in  caching.cache_dictionary:
-        client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_to_origin.connect((req.host, 80))
-        client_to_origin.send(str(req).encode(http.Charset.ASCII))
-        resp, obj, bytestream = recv_all(client_to_origin, False)
-        print(resp)
-        handle_cache_obj(req, resp, obj)
-    else:
-        pass
-        #need to get cached object but first need to send conditional get to server
-    return resp, obj, bytestream
+    client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_to_origin.connect((req.host, 80))
+    client_to_origin.send(str(req).encode(http.Charset.ASCII))
+    resp, obj = recv_all(client_to_origin, False)
+    print(resp)
+    handle_cache_obj(req, resp, obj)
+    return resp, obj
 
 
 def handle_cache_obj(req: Request, resp: Response, obj: bytes) -> None:
@@ -181,23 +172,21 @@ def handle_client(conn: socket.socket, addr: str) -> None:
     while connected:
         connected = False
         try:
-            req, req_obj, req_bytestream = recv_all(conn)
+            req, req_obj = recv_all(conn)
             print(req)
-            if req_bytestream:
-                resp, obj, bytestream = connect_to_external_server(req)
-                
+            if req:
+                resp, obj = connect_to_external_server(req)
                 if "keep-alive" in req.connection and "keep-alive" in resp.connection:
                     connected = True
                 else:
                     resp.connection = {"close"}
-                conn.send(bytestream)
+                conn.send(str(resp).encode(http.Charset.ASCII) + obj)
         except (ConnectionError, ConnectionResetError):
             sock_open = False
             conn.close()
             print(f"[INFO] Client with address {addr} has terminated a connection.")
             break
         except Exception as e:
-            sock_open = False
             conn.close()
             print(f"[INFO] Client with address {addr} has terminated a connection.")
             raise e
