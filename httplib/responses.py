@@ -29,7 +29,7 @@ class Response:
         self.last_modified = None
         # ------proxy-related fields------
         self.proxy_connection = set()
-        self.proxy_authenticate = set()
+        self.proxy_authenticate = None
         # ------fields used by modern browsers and other fields------
         self.access_control_allow_methods = set()
         self.access_control_allow_origin = set()

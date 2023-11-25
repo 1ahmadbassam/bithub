@@ -1,8 +1,9 @@
 import socket
 import threading
-import time
+from datetime import datetime
 
 import caching
+import security
 from httplib import http
 from httplib.requests import Request
 from httplib.responses import Response
@@ -49,7 +50,7 @@ def connect_to_external_server(client_to_origin: socket.socket, req: Request) ->
 def handle_cache_obj(req: Request, resp: Response, cache_obj: bytes, resp_obj: bytes) -> bytes:
     filename = req.get_obj_filename()
     if resp.status_code == 200 and "no-store" not in resp.cache_control:
-        caching.add_to_cache(caching.get_path_from_url(req.path, filename), filename, resp_obj, resp.last_modified[0] if resp.last_modified else time.time())
+        caching.add_to_cache(caching.get_path_from_url(req.path, filename), filename, resp_obj, resp.last_modified[0] if resp.last_modified else datetime.now())
     elif resp.status_code == 304:
         print(f"[INFO] Object {req.path} not modified.")
         print(f"[INFO] Object retrieved from cache.")
@@ -76,16 +77,29 @@ def handle_client(conn: socket.socket, addr: str) -> None:
             if req.command == Request.Command.POST:
                 break
             print(req)
+            if req.host in security.BLOCKED_HOSTNAMES:
+                resp = Response(403, "Forbidden")
+                resp.connection = {"close"}
+                obj = security.load_blocking_html()
+                resp.content_length = len(obj)
+                print(resp)
+                conn.send(str(resp).encode(http.Charset.ASCII) + obj)
+                break
+            elif req.host in security.SECURED_WEBSITES:
+                resp = Response(407, "Proxy Authentication Required", http.Version.HTTP11)
+                resp.connection = {"close"}
+                resp.proxy_authenticate = 'Basic realm="This website is protected"'
+                print(resp)
+                conn.send(str(resp).encode(http.Charset.ASCII))
+                break
             client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client_to_origin.connect((req.host, 80))
             resp, obj = connect_to_external_server(client_to_origin, req)
             if "keep-alive" in req.connection and "keep-alive" in resp.connection:
                 connected = True
-
             else:
                 resp.connection = {"close"}
             print(resp)
-            print(str(resp).encode(http.Charset.ASCII) + obj)
             conn.send(str(resp).encode(http.Charset.ASCII) + obj)
         except (ConnectionError, ConnectionResetError):
             break
@@ -103,8 +117,12 @@ def run_server():
     print(f"[INFO] Server is listening on {ADDR}")
     while True:
         conn, addr = server.accept()
-        conn_thread = threading.Thread(target=handle_client, args=(conn, addr))
-        conn_thread.start()
+        if addr[0] in security.BLOCKED_IP_ADDRESSES:
+            print(f"[SECURITY] Blocked IP address in blacklist {addr[0]}")
+            conn.close()
+        else:
+            conn_thread = threading.Thread(target=handle_client, args=(conn, addr))
+            conn_thread.start()
 
 
 def exit_script():

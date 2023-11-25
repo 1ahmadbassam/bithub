@@ -577,11 +577,6 @@ def __parse_http_line(line: str, request_obj: Request) -> None:
                 [code, text] = x.split("-", 1)
                 res[code.strip()] = text.strip()
             setattr(request_obj, keyword, res)
-        elif keyword == "proxy_authorization":
-            keyword_dict = getattr(request_obj, keyword)
-            for x in contents.split(";"):
-                [feature, policy] = x.strip().split(http.WHITESPACE, 1)
-                keyword_dict[feature.strip()] = policy.strip()
         else:
             try:
                 class_var = getattr(request_obj, keyword)
