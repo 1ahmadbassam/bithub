@@ -221,6 +221,15 @@ class Request:
                 return "index.html"
             return filename
 
+    def get_base64_encoded_proxy_credentials(self):
+        if self.proxy_authorization:
+            res = self.proxy_authorization.split(http.WHITESPACE, 1)
+            if len(res) > 1:
+                return res[1]
+            return None
+        else:
+            return None
+
     def _line_host(self) -> str:
         return http.format_param("Host", self.host)
 

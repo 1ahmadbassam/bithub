@@ -1,9 +1,11 @@
+import base64
 import hashlib
 import pickle
 import os
 
-BLOCKING_HTML = "blocked.html"
-SECURITY_DIRECTIVE = "security"
+SECURITY_DIRECTIVE = "security/"
+BLOCKING_HTML = SECURITY_DIRECTIVE + "blocked.html"
+SECURITY_FILE = SECURITY_DIRECTIVE + "users.dat"
 users = set()
 
 BLOCKED_IP_ADDRESSES = {"172.20.10.3"}
@@ -17,35 +19,42 @@ def load_blocking_html():
         return file.read()
 
 
-def hash_credentials(credentials: str) -> str:
+def hash_credentials(credentials: bytes) -> str:
     hash_object = hashlib.sha256()
-    hash_object.update(credentials.encode())
+    hash_object.update(credentials)
     return hash_object.hexdigest()
 
 
-def add_hashed_credentials_to_users(credentials: str):
+def add_new_user(credentials: bytes):
     users.add(hash_credentials(credentials))
 
 
-def add_new_user(credentials: str):
-    users.add(hash_credentials(credentials))
-
-
-def authenticate(credentials: str):
-    if hash(credentials) in users:
+def authenticate(credentials: bytes):
+    if not users:
+        load_hashed_credentials()
+    if hash_credentials(credentials) in users:
         return True
     return False
 
 
-def save_hashed_credentials(credentials: str):
-        os.makedirs(SECURITY_DIRECTIVE, exist_ok=True)
-        with open(SECURITY_DIRECTIVE, "wb") as file:
-            file.write(pickle.dumps(users))
-        print("[INFO] Saved credentials for the website.")
+def save_hashed_credentials():
+    os.makedirs(SECURITY_DIRECTIVE, exist_ok=True)
+    with open(SECURITY_FILE, "wb") as file:
+        file.write(pickle.dumps(users))
+    print("[INFO] Saved credentials for the website.")
 
 
 def load_hashed_credentials():
     global users
-    if os.path.exists(SECURITY_DIRECTIVE):
-        with open(SECURITY_DIRECTIVE, "rb") as file:
+    if os.path.exists(SECURITY_FILE):
+        with open(SECURITY_FILE, "rb") as file:
             users = pickle.loads(file.read())
+
+
+if __name__ == "__main__":
+    user = input("Enter username: ")
+    password = input("Enter password: ")
+    encoded_string = base64.b64encode(f"{user}:{password}".encode())
+    load_hashed_credentials()
+    add_new_user(encoded_string)
+    save_hashed_credentials()

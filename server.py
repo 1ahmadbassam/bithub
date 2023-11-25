@@ -85,6 +85,17 @@ def handle_client(conn: socket.socket, addr: str) -> None:
                 print(resp)
                 conn.send(str(resp).encode(http.Charset.ASCII) + obj)
                 break
+            elif req.host in security.SECURED_WEBSITES and req.proxy_authorization:
+                credentials = req.get_base64_encoded_proxy_credentials()
+                if credentials and security.authenticate(req.get_base64_encoded_proxy_credentials().encode()):
+                    pass
+                else:
+                    resp = Response(407, "Proxy Authentication Required", http.Version.HTTP11)
+                    resp.connection = {"close"}
+                    resp.proxy_authenticate = 'Basic realm="This website is protected"'
+                    print(resp)
+                    conn.send(str(resp).encode(http.Charset.ASCII))
+                    break
             elif req.host in security.SECURED_WEBSITES:
                 resp = Response(407, "Proxy Authentication Required", http.Version.HTTP11)
                 resp.connection = {"close"}
@@ -138,8 +149,12 @@ def exit_script():
     exit(0)
 
 
-if __name__ == "__main__":
+def run():
     server_thread = threading.Thread(target=run_server)
     server_thread.daemon = True
     server_thread.start()
     exit_script()
+
+
+if __name__ == "__main__":
+    run()
