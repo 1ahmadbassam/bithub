@@ -120,6 +120,7 @@ def recv_all(sock: socket.socket, request: bool = True):
         else:
             data = initial_data
             data += recv_data(sock)
+        bytestream = header.encode(http.Charset.ASCII)
         bytestream += data
         return primary_obj, data, bytestream
     return None, None, None
@@ -178,11 +179,12 @@ def handle_client(conn: socket.socket, addr: str) -> None:
             print(req)
             if req_bytestream:
                 resp, obj, bytestream = connect_to_external_server(req)
-
                 if "keep-alive" in req.connection and "keep-alive" in resp.connection:
                     connected = True
                 else:
                     resp.connection = {"close"}
+                print(bytestream)
+                print(str(resp).encode(http.Charset.ASCII) + obj)
                 conn.send(bytestream)
         except (ConnectionError, ConnectionResetError):
             sock_open = False
