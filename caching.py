@@ -3,6 +3,8 @@ import time
 import pickle
 from min_heap import MinHeap, Pair
 
+#need to check if caching is allowed
+
 CACHE_DIRECTIVE = "cache/"
 HEAP_MAX_SIZE = 10000
 DISK_MAX_SIZE = 104857600

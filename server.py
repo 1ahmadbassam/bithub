@@ -105,7 +105,7 @@ def recv_all(sock: socket.socket, request: bool = True):
                 data, resume, trailer = get_data_from_chunked(initial_data, True)
             else:
                 data, resume, trailer = get_data_from_chunked(initial_data)
-            if resume:
+            if resume: #shouldnt it be while loop?
                 if primary_obj.trailer:
                     part, trailer = recv_transfer_encoding_data(sock, True)
                 else:
@@ -150,11 +150,17 @@ def get_initial_data_bytestream(bytestream: bytes) -> (str, bytes):
 
 
 def connect_to_external_server(req: Request) -> (Response, bytes, bytes):
-    client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_to_origin.connect((req.host, 80))
-    client_to_origin.send(str(req).encode(http.Charset.ASCII))
-    resp, obj, bytestream = recv_all(client_to_origin, False)
-    print(resp)
+    #need to check if cached
+    if req.path not in  caching.cache_dictionary:
+        client_to_origin = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_to_origin.connect((req.host, 80))
+        client_to_origin.send(str(req).encode(http.Charset.ASCII))
+        resp, obj, bytestream = recv_all(client_to_origin, False)
+        print(resp)
+        handle_cache_obj(req, resp, obj)
+    else:
+        pass
+        #need to get cached object but first need to send conditional get to server
     return resp, obj, bytestream
 
 
@@ -179,7 +185,7 @@ def handle_client(conn: socket.socket, addr: str) -> None:
             print(req)
             if req_bytestream:
                 resp, obj, bytestream = connect_to_external_server(req)
-                handle_cache_obj(req, resp, obj)
+                
                 if "keep-alive" in req.connection and "keep-alive" in resp.connection:
                     connected = True
                 else:
