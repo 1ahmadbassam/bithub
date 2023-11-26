@@ -110,9 +110,8 @@ def open_proxy():
     # Redirect console output to the text area
     sys.stdout = ConsoleRedirector(text_area)
 
+
     server.run()
-
-
 
 
 def open_registration_window():
