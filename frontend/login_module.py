@@ -1,17 +1,15 @@
-# before you run this code, you have to run the command "pip install ctk" on your terminal
+# before you run this code, you have to run the command "pip install customtkinter" on your terminal
 
 import customtkinter as ctk
 import hashlib
+from httplib import requests
+from security import load_hashed_credentials, save_hashed_credentials, hash_credentials
 
-ctk.set_appearance_mode("Dark")
+ctk.set_appearance_mode("Light")
 
-accounts = {}
+users = {}
 
-
-def hash_password(password: str) -> str:
-    hash_object = hashlib.sha256()
-    hash_object.update(password.encode())
-    return hash_object.hexdigest()
+req = '''GET http://sdfox7.com/ HTTP/1.1\r\nAccept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, */*\r\nAccept-Language: en\r\nUA-pixels: 1024x768\r\nUA-color: color16\r\nUA-OS: Windows NT\r\nUA-CPU: x86\r\nUser-Agent: Mozilla/2.0 (compatible; MSIE 3.01; Windows NT)\r\nHost: sdfox7.com\r\nConnection: Keep-Alive\r\n\r\nGET http://sdfox7.com/xp/authcab.jpg HTTP/1.1\r\nHost: sdfox7.com\r\nConnection: keep-alive\r\n\r\nhttp://sdfox7.com/xp/ie8cert.jpg'''
 
 
 def create_new_account(username: str, password: str) -> bool:
@@ -19,21 +17,23 @@ def create_new_account(username: str, password: str) -> bool:
     if not username or not password:
         print("empty username or password.")
         return False
-    elif username in accounts:
+    elif username in users:
         print("Username already exists, try a different username.")
     else:
-        accounts[username] = hash_password(password)
-        print(accounts)
+        users[username] = hash_credentials(password)
+        print(users)
         registration_window.destroy()
         root.deiconify()
         return True
 
 
 def authenticate(username: str, password: str) -> None:
-    if username not in accounts:
+    if not username:
+         open_proxy()
+    elif username not in users:
         print("username doesn't exist.")
     else:
-        if accounts[username] == hash_password(password):
+        if users[username] == hash_credentials(password):
             open_proxy()
         else:
             print("password doesn't match username")
@@ -57,7 +57,7 @@ def open_proxy():
     label.pack(pady=15, padx=10)
 
     tabview = ctk.CTkTabview(master=frame)
-    tabview.pack(padx=20, pady=20)
+    tabview.pack(padx=20, pady=0)
 
     tabview.add("tab 1")
     tabview.add("tab 2")
@@ -66,7 +66,7 @@ def open_proxy():
     tabview.add("tab 5")
     tabview.set("tab 1")
 
-    label2 = ctk.CTkLabel(master=tabview.tab("tab 1"), text="BlaBlaBla", font=("Roboto", 10), cursor="hand2",
+    label2 = ctk.CTkLabel(master=tabview.tab("tab 1"), text=str(requests.parse(req)), font=("Roboto", 10), cursor="hand2",
                           text_color=("#DB3E39", "#821D1A"))
     label2.pack(pady=1, padx=10)
 
@@ -113,6 +113,7 @@ def open_sign_in():
 
     frame = ctk.CTkFrame(master=root)
     frame.pack(pady=100, padx=60, fill="both", expand=True)
+    
 
     label = ctk.CTkLabel(master=frame, text="Login System", font=("Roboto", 24))
     label.pack(pady=30, padx=10)
@@ -139,4 +140,4 @@ def open_sign_in():
     root.mainloop()
 
 
-open_sign_in()
+
