@@ -136,25 +136,5 @@ def run_server():
             conn_thread.start()
 
 
-def exit_script():
-    try:
-        while True:
-            inp = input("[INFO] Type 'exit' to exit\n")
-            if inp.strip().lower() == "exit":
-                print("[INFO] Server is terminating...")
-                break
-    except KeyboardInterrupt:
-        pass
-    caching.save_globals()
-    exit(0)
-
-
-def run():
-    server_thread = threading.Thread(target=run_server)
-    server_thread.daemon = True
-    server_thread.start()
-    exit_script()
-
-
 if __name__ == "__main__":
-    run()
+    run_server()

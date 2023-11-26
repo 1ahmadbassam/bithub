@@ -1,7 +1,4 @@
-import datetime
-import os
-import time
-import pickle
+import datetime, os, time, pickle
 from min_heap import MinHeap, Pair
 
 # need to check if caching is allowed
