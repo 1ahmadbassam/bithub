@@ -152,11 +152,9 @@ def exit_script():
 
 def run():
     server_thread = threading.Thread(target=run_server)
-    server_thread.daemon = True
-    server_thread.start()
+    server_thread.join()
     exist_thread = threading.Thread(target=exit_script)
-    exist_thread.daemon = True
-    exist_thread.start()
+    exist_thread.join()
     
 
 if __name__ == "__main__":
