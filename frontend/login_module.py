@@ -1,5 +1,6 @@
 # before you run this code, you have to run the command "pip install customtkinter" on your terminal
 
+import server
 import customtkinter as ctk
 import tkinter as tk
 import hashlib
@@ -7,10 +8,9 @@ import os
 import pickle
 import sys
 sys.path.append('../BITHUB')
-import server
 
 
-ctk.set_appearance_mode("Light")
+ctk.set_appearance_mode("Dark")
 
 MOTHER_FOLDER = "frontend/"
 ADMINISTRATOR_DIRECTIVE = MOTHER_FOLDER + "administrator_files/"
@@ -18,18 +18,21 @@ ADMINISTRARTOR_FILE = ADMINISTRATOR_DIRECTIVE + "users.dat"
 
 users = {}
 
+
 class ConsoleRedirector:
     def __init__(self, text_area):
         self.text_area = text_area
 
     def write(self, message):
         self.text_area.insert("end", message)
-        self.text_area.see("end") 
+        self.text_area.see("end")
+
 
 def hash_credentials(credentials):
     hash_object = hashlib.sha256()
     hash_object.update(credentials.encode())
     return hash_object.hexdigest()
+
 
 def save_hashed_credentials():
     os.makedirs(ADMINISTRATOR_DIRECTIVE, exist_ok=True)
@@ -60,7 +63,6 @@ def create_new_account(username: str, password: str) -> bool:
         return True
 
 
-
 def authenticate(username: str, password: str) -> None:
     if username not in users:
         print("[Warning] Username does not exist.")
@@ -76,7 +78,6 @@ def goBack():
     root.deiconify()
 
 
-
 def open_proxy():
     global root
     root.iconify()  # Close the old window
@@ -84,9 +85,8 @@ def open_proxy():
     new_window.geometry("800x500")
     new_window.title("proxy")
 
-  
     # Create a frame inside the new window
-    frame = ctk.CTkFrame(master=new_window)
+    frame = ctk.CTkFrame(master=new_window, fg_color=("#DB3E39", "#821D1A"))
     frame.pack(pady=20, padx=60, fill="both", expand=True)
 
     label = ctk.CTkLabel(master=frame, text="Bithub")
@@ -99,6 +99,9 @@ def open_proxy():
     # Redirect console output to the text area
     sys.stdout = ConsoleRedirector(text_area)
 
+    button = ctk.CTkButton(master=frame, text="Exit", command=lambda: goBack(),
+                           fg_color=("#DB3E39", "#821D1A"), hover_color=("black"), hover=True)
+    button.pack(pady=12, padx=12)
 
     server.run()
 
@@ -177,6 +180,7 @@ def open_sign_in():
                 lambda event: open_registration_window())  # Bind the click event to open the registration window
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     open_sign_in()
