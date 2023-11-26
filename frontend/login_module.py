@@ -12,7 +12,7 @@ import server
 
 ctk.set_appearance_mode("Light")
 
-ADMINISTRATOR_DIRECTIVE = "administrator_files"
+ADMINISTRATOR_DIRECTIVE = "administrator_files/"
 ADMINISTRARTOR_FILE = ADMINISTRATOR_DIRECTIVE + "users.dat"
 
 users = {}
@@ -25,21 +25,21 @@ class ConsoleRedirector:
         self.text_area.insert("end", message)
         self.text_area.see("end") 
 
-def hash_credentials(password):
+def hash_credentials(credentials):
     hash_object = hashlib.sha256()
-    hash_object.update(password.encode())
+    hash_object.update(credentials.encode())
     return hash_object.hexdigest()
 
 def save_hashed_credentials():
     os.makedirs(ADMINISTRATOR_DIRECTIVE, exist_ok=True)
     with open(ADMINISTRARTOR_FILE, "wb") as file:
         file.write(pickle.dumps(users))
-    print("[INFO] Saved credentials for the website.")
+    print("[INFO] Saved administrator credentials.")
 
 
 def load_hashed_credentials():
     global users
-    if os.path.exists(ADMINISTRARTOR_FILE):
+    if os.path.exists("frontend/" + ADMINISTRARTOR_FILE):
         with open(ADMINISTRARTOR_FILE, "rb") as file:
             users = pickle.loads(file.read())
 
@@ -47,10 +47,10 @@ def load_hashed_credentials():
 def create_new_account(username: str, password: str) -> bool:
     global registration_window
     if not username or not password:
-        print("empty username or password.")
+        print("[Warning] Empty username or password.")
         return False
     elif username in users:
-        print("Username already exists, try a different username.")
+        print("[Warning] Username already exists, try a different username.")
     else:
         users[username] = hash_credentials(password)
         print(users)
