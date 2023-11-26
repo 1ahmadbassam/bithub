@@ -3,7 +3,7 @@ import hashlib
 import pickle
 import os
 
-SECURITY_DIRECTIVE = "security_files/"
+SECURITY_DIRECTIVE = "security/"
 BLOCKING_HTML = SECURITY_DIRECTIVE + "blocked.html"
 SECURITY_FILE = SECURITY_DIRECTIVE + "users.dat"
 users = set()
@@ -41,7 +41,7 @@ def save_hashed_credentials():
     os.makedirs(SECURITY_DIRECTIVE, exist_ok=True)
     with open(SECURITY_FILE, "wb") as file:
         file.write(pickle.dumps(users))
-    print("[INFO] Saved credentials for the website.")
+    print("[INFO] Saved credentials file to disk.")
 
 
 def load_hashed_credentials():
