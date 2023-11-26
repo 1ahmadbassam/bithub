@@ -23,11 +23,11 @@ class ConsoleRedirector:
 
     def write(self, message):
         self.text_area.insert("end", message)
-        self.text_area.see("end")
+        self.text_area.see("end") 
 
-def hash_credentials(credentials: bytes) -> str:
+def hash_credentials(password):
     hash_object = hashlib.sha256()
-    hash_object.update(credentials)
+    hash_object.update(password.encode())
     return hash_object.hexdigest()
 
 def save_hashed_credentials():
@@ -61,9 +61,7 @@ def create_new_account(username: str, password: str) -> bool:
 
 
 def authenticate(username: str, password: str) -> None:
-    if not username:
-        open_proxy()
-    elif username not in users:
+    if username not in users:
         print("[Warning] Username does not exist.")
     else:
         if users[username] == hash_credentials(password):
@@ -78,16 +76,6 @@ def goBack():
 
 
 
-class ConsoleRedirector:
-    def __init__(self, text_area):
-        self.text_area = text_area
-
-    def write(self, message):
-        self.text_area.insert("end", message)
-        self.text_area.see("end")
-
-# ...
-
 def open_proxy():
     global root
     root.iconify()  # Close the old window
@@ -100,7 +88,7 @@ def open_proxy():
     frame = ctk.CTkFrame(master=new_window)
     frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    label = ctk.CTkLabel(master=frame, text="Proxy Sever")
+    label = ctk.CTkLabel(master=frame, text="Bithub")
     label.pack(pady=15, padx=10)
 
     # Create a text area widget to display console output
