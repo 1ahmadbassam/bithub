@@ -9,8 +9,6 @@ import pickle
 import sys
 import threading
 from server import run_server
-import time
-
 
 ctk.set_appearance_mode("Dark")
 
@@ -81,7 +79,6 @@ def go_back():
 
 def exit_script():
     print("[INFO] Server is terminating...")
-    time.sleep(1)
     caching.save_globals()
     save_hashed_credentials()
     exit(0)
