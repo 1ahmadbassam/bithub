@@ -110,14 +110,12 @@ def open_proxy():
     run_server_thread.daemon = True
     run_server_thread.start()
 
-    exit_button = ctk.CTkButton(master=frame, text="Exit", command=lambda: exit_script(
-    ), fg_color=("black"), hover_color=("black"), hover=True)
+    exit_button = ctk.CTkButton(master=frame, text="Exit", command=lambda: exit_script(), fg_color=("black"), hover_color=("black"), hover=True)
     exit_button.pack(pady=12, padx=12)
 
 
 def open_registration_window():
     global registration_window, root, users
-    load_hashed_credentials()
     root.iconify()  # Close the old window
     registration_window = ctk.CTkToplevel()  # Create a new window
     registration_window.title("proxy")
@@ -153,6 +151,7 @@ def open_registration_window():
 
 def open_sign_in():
     global root
+    load_hashed_credentials()
     root = ctk.CTk()
     root.geometry("1000*1000")
     root.title("login")
