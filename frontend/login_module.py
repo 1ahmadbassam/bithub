@@ -64,12 +64,12 @@ def authenticate(username: str, password: str) -> None:
     if not username:
         open_proxy()
     elif username not in users:
-        print("username doesn't exist.")
+        print("[Warning] Username does not exist.")
     else:
         if users[username] == hash_credentials(password):
             open_proxy()
         else:
-            print("password doesn't match username")
+            print("[Warning] Password doesn't match username")
 
 
 def goBack():
