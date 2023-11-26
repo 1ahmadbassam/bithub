@@ -99,6 +99,9 @@ def open_proxy():
     # Redirect console output to the text area
     sys.stdout = ConsoleRedirector(text_area)
 
+    button = ctk.CTkButton(master=frame, text="Exit", command=lambda: goBack(),
+                           fg_color=("#DB3E39", "#821D1A"), hover_color=("black"), hover=True)
+    button.pack(pady=12, padx=12)
 
     server.run()
 
