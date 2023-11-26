@@ -1,20 +1,20 @@
 # before you run this code, you have to run the command "pip install customtkinter" on your terminal
 
-import customtkinter as ctk
-import tkinter as tk
 import hashlib
-import caching
 import os
 import pickle
 import sys
 import threading
+
+import customtkinter as ctk
+
+import caching
 from server import run_server
 
 ctk.set_appearance_mode("Dark")
 
-
 ADMINISTRATOR_DIRECTIVE = "administrator_files/"
-ADMINISTRARTOR_FILE = ADMINISTRATOR_DIRECTIVE + "users.dat"
+ADMINISTRATOR_FILE = ADMINISTRATOR_DIRECTIVE + "users.dat"
 
 users = {}
 
@@ -36,15 +36,15 @@ def hash_credentials(credentials):
 
 def save_hashed_credentials():
     os.makedirs(ADMINISTRATOR_DIRECTIVE, exist_ok=True)
-    with open(ADMINISTRARTOR_FILE, "wb") as file:
+    with open(ADMINISTRATOR_FILE, "wb") as file:
         file.write(pickle.dumps(users))
     print("[INFO] Saved administrator credentials.")
 
 
 def load_hashed_credentials():
     global users
-    if os.path.exists(ADMINISTRARTOR_FILE):
-        with open(ADMINISTRARTOR_FILE, "rb") as file:
+    if os.path.exists(ADMINISTRATOR_FILE):
+        with open(ADMINISTRATOR_FILE, "rb") as file:
             users = pickle.loads(file.read())
 
 
@@ -92,10 +92,10 @@ def open_proxy():
     new_window.title("proxy")
 
     # Create a frame inside the new window
-    frame = ctk.CTkFrame(master=new_window,fg_color="#821D1A")
+    frame = ctk.CTkFrame(master=new_window, fg_color="#821D1A")
     frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    label = ctk.CTkLabel(master=frame, text="Bithub")
+    label = ctk.CTkLabel(master=frame, text="BitHub")
     label.pack(pady=15, padx=10)
 
     # Create a text area widget to display console output
@@ -109,7 +109,8 @@ def open_proxy():
     run_server_thread.daemon = True
     run_server_thread.start()
 
-    exit_button = ctk.CTkButton(master=frame, text="Exit", command=lambda: exit_script(), fg_color=("black"), hover_color=("black"), hover=True)
+    exit_button = ctk.CTkButton(master=frame, text="Exit", command=lambda: exit_script(), fg_color="black",
+                                hover_color="black", hover=True)
     exit_button.pack(pady=12, padx=12)
 
 
@@ -137,7 +138,8 @@ def open_registration_window():
     password.pack(pady=12, padx=12)
 
     button = ctk.CTkButton(master=frame, text="Create account", command=lambda: create_new_account(
-        username.get(), password.get()), fg_color=("#DB3E39", "#821D1A"), hover_color=("#DB3E39", "#821D1A"), hover=True)
+        username.get(), password.get()), fg_color=("#DB3E39", "#821D1A"), hover_color=("#DB3E39", "#821D1A"),
+                           hover=True)
     button.pack(pady=12, padx=12)
 
     label2 = ctk.CTkLabel(master=frame, text="Already have an account, sign in here", font=(
