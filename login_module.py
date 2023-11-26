@@ -2,16 +2,15 @@
 
 import customtkinter as ctk
 import tkinter as tk
-import hashlib
+import hashlib, caching
 import os, pickle, sys, threading
-sys.path.append('../BITHUB')
 from server import run_server
 
 
 ctk.set_appearance_mode("Light")
 
-MOTHER_FOLDER = "frontend/"
-ADMINISTRATOR_DIRECTIVE = MOTHER_FOLDER + "administrator_files/"
+
+ADMINISTRATOR_DIRECTIVE = "administrator_files/"
 ADMINISTRARTOR_FILE = ADMINISTRATOR_DIRECTIVE + "users.dat"
 
 users = {}
@@ -71,10 +70,22 @@ def authenticate(username: str, password: str) -> None:
         print("[Warning] Password doesn't match username")
 
 
-def goBack():
+def go_back():
     registration_window.destroy()
     root.deiconify()
 
+
+def exit_script():
+    try:
+        while True:
+            inp = input("[INFO] Type 'exit' to exit\n")
+            if inp.strip().lower() == "exit":
+                print("[INFO] Server is terminating...")
+                break
+    except KeyboardInterrupt:
+        pass
+    caching.save_globals()
+    exit(0)
 
 
 def open_proxy():
@@ -99,10 +110,12 @@ def open_proxy():
     # Redirect console output to the text area
     sys.stdout = ConsoleRedirector(text_area)
 
-    exit_button = ctk.CTkButton(master=frame, text="Exit", command=lambda: goBack(), fg_color=("#DB3E39", "#821D1A"), hover_color=("black"), hover=True)
-    exit_button.pack(pady=12, padx=12)
+    run_server_thread = threading.Thread(target = run_server)
+    run_server_thread.daemon = True
+    run_server_thread.start()
 
-    run_server()
+    exit_button = ctk.CTkButton(master=frame, text="Exit", command=lambda: exit_script(), fg_color=("#DB3E39", "#821D1A"), hover_color=("black"), hover=True)
+    exit_button.pack(pady=12, padx=12)
 
 
 def open_registration_window():
@@ -134,7 +147,7 @@ def open_registration_window():
     label2.pack(pady=1, padx=10)
 
     # Bind the click event to go back to the sign-in page
-    label2.bind("<Button-1>", lambda event: goBack())
+    label2.bind("<Button-1>", lambda event: go_back())
 
 
 def open_sign_in():
