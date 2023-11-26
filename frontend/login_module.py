@@ -12,7 +12,8 @@ import server
 
 ctk.set_appearance_mode("Light")
 
-ADMINISTRATOR_DIRECTIVE = "administrator_files/"
+MOTHER_FOLDER = "frontend/"
+ADMINISTRATOR_DIRECTIVE = MOTHER_FOLDER + "administrator_files/"
 ADMINISTRARTOR_FILE = ADMINISTRATOR_DIRECTIVE + "users.dat"
 
 users = {}
@@ -39,7 +40,7 @@ def save_hashed_credentials():
 
 def load_hashed_credentials():
     global users
-    if os.path.exists("frontend/" + ADMINISTRARTOR_FILE):
+    if os.path.exists(ADMINISTRARTOR_FILE):
         with open(ADMINISTRARTOR_FILE, "rb") as file:
             users = pickle.loads(file.read())
 
