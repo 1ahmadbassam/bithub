@@ -1,21 +1,34 @@
 # before you run this code, you have to run the command "pip install customtkinter" on your terminal
 
 import customtkinter as ctk
+import tkinter as tk
 import hashlib
-from httplib import requests
-from security import hash_credentials
 import os
 import pickle
+import sys
+sys.path.append('../BITHUB')
+import server
+
 
 ctk.set_appearance_mode("Light")
 
-ADMINISTRATOR_DIRECTIVE = "administrator"
+ADMINISTRATOR_DIRECTIVE = "administrator_files"
 ADMINISTRARTOR_FILE = ADMINISTRATOR_DIRECTIVE + "users.dat"
 
 users = {}
 
-req = '''GET http://sdfox7.com/ HTTP/1.1\r\nAccept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, */*\r\nAccept-Language: en\r\nUA-pixels: 1024x768\r\nUA-color: color16\r\nUA-OS: Windows NT\r\nUA-CPU: x86\r\nUser-Agent: Mozilla/2.0 (compatible; MSIE 3.01; Windows NT)\r\nHost: sdfox7.com\r\nConnection: Keep-Alive\r\n\r\nGET http://sdfox7.com/xp/authcab.jpg HTTP/1.1\r\nHost: sdfox7.com\r\nConnection: keep-alive\r\n\r\nhttp://sdfox7.com/xp/ie8cert.jpg'''
+class ConsoleRedirector:
+    def __init__(self, text_area):
+        self.text_area = text_area
 
+    def write(self, message):
+        self.text_area.insert("end", message)
+        self.text_area.see("end")
+
+def hash_credentials(credentials: bytes) -> str:
+    hash_object = hashlib.sha256()
+    hash_object.update(credentials)
+    return hash_object.hexdigest()
 
 def save_hashed_credentials():
     os.makedirs(ADMINISTRATOR_DIRECTIVE, exist_ok=True)
@@ -46,13 +59,6 @@ def create_new_account(username: str, password: str) -> bool:
         return True
 
 
-def Print(printable: str):
-    tabview = ctk.CTkTabview(master=frame)
-    tabview.pack(padx=20, pady=0)
-    label2 = ctk.CTkLabel(master=tabview.tab("tab 1"), text=str(requests.parse(printable)), font=("Roboto", 10), cursor="hand2",
-                          text_color=("#DB3E39", "#821D1A"))
-    label2.pack(pady=1, padx=10)
-
 
 def authenticate(username: str, password: str) -> None:
     if not username:
@@ -71,6 +77,17 @@ def goBack():
     root.deiconify()
 
 
+
+class ConsoleRedirector:
+    def __init__(self, text_area):
+        self.text_area = text_area
+
+    def write(self, message):
+        self.text_area.insert("end", message)
+        self.text_area.see("end")
+
+# ...
+
 def open_proxy():
     global root
     root.iconify()  # Close the old window
@@ -78,25 +95,24 @@ def open_proxy():
     new_window.geometry("800x500")
     new_window.title("proxy")
 
+  
     # Create a frame inside the new window
     frame = ctk.CTkFrame(master=new_window)
     frame.pack(pady=20, padx=60, fill="both", expand=True)
+
     label = ctk.CTkLabel(master=frame, text="Proxy Sever")
     label.pack(pady=15, padx=10)
 
-    tabview = ctk.CTkTabview(master=frame)
-    tabview.pack(padx=20, pady=0)
+    # Create a text area widget to display console output
+    text_area = ctk.CTkTextbox(master=frame)
+    text_area.pack(padx=10, pady=10, fill="both", expand=True)
 
-    tabview.add("tab 1")
-    tabview.add("tab 2")
-    tabview.add("tab 3")
-    tabview.add("tab 4")
-    tabview.add("tab 5")
-    tabview.set("tab 1")
+    # Redirect console output to the text area
+    sys.stdout = ConsoleRedirector(text_area)
 
-    label2 = ctk.CTkLabel(master=tabview.tab("tab 1"), text=str(requests.parse(req)), font=("Roboto", 10), cursor="hand2",
-                          text_color=("#DB3E39", "#821D1A"))
-    label2.pack(pady=1, padx=10)
+    server.run()
+
+
 
 
 def open_registration_window():
@@ -173,3 +189,6 @@ def open_sign_in():
                 lambda event: open_registration_window())  # Bind the click event to open the registration window
 
     root.mainloop()
+
+if __name__ == "__main__":
+    open_sign_in()

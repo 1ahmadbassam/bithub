@@ -3,7 +3,7 @@ import hashlib
 import pickle
 import os
 
-SECURITY_DIRECTIVE = "security/"
+SECURITY_DIRECTIVE = "security_files/"
 BLOCKING_HTML = SECURITY_DIRECTIVE + "blocked.html"
 SECURITY_FILE = SECURITY_DIRECTIVE + "users.dat"
 users = set()

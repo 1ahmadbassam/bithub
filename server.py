@@ -152,11 +152,8 @@ def exit_script():
 
 def run():
     server_thread = threading.Thread(target=run_server)
-    user_interface_thread = threading.Thread(target=login_module.open_sign_in)
     server_thread.daemon = True
-    user_interface_thread.daemon = True
     server_thread.start()
-    user_interface_thread.start()
     exit_script()
 
 
