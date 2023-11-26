@@ -102,9 +102,7 @@ def open_proxy():
     exit_button = ctk.CTkButton(master=frame, text="Exit", command=lambda: goBack(), fg_color=("#DB3E39", "#821D1A"), hover_color=("black"), hover=True)
     exit_button.pack(pady=12, padx=12)
 
-    server_thread = threading.Thread(target = run_server)
-    server_thread.daemon = True
-    server_thread.start()
+    run_server()
 
 
 def open_registration_window():
