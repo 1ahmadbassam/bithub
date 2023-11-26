@@ -8,7 +8,6 @@ from httplib import http
 from httplib.requests import Request
 from httplib.responses import Response
 from reception import recv_all
-from frontend import login_module
 
 PORT = 8080
 SERVER = ""
@@ -154,10 +153,8 @@ def run():
     server_thread = threading.Thread(target=run_server)
     server_thread.daemon = True
     server_thread.start()
-    exist_thread = threading.Thread(target=exit_script)
-    exist_thread.daemon = True
-    exist_thread.start()
-    
+    exit_script()
+
 
 if __name__ == "__main__":
     run()
