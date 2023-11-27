@@ -10,10 +10,14 @@ from httplib.requests import Request
 from httplib.responses import Response
 from reception import recv_all, set_timeout, timeout
 
+
+# server constants
 PORT = 8080
 SERVER = ""
 ADDR = (SERVER, PORT)
 
+
+# create a socket, and bind to it
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
