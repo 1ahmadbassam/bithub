@@ -61,6 +61,7 @@ def create_new_account(username: str, password: str) -> bool:
         return True
 
 
+# function that checks that the username and password exist and match in the users dictionary
 def authenticate(username: str, password: str) -> None:
     global proxy_window
     if username not in users:
@@ -68,6 +69,7 @@ def authenticate(username: str, password: str) -> None:
     elif users[username] == hash_credentials(password):
         sign_in_window.destroy()
         proxy_window.deiconify()
+        #start the server once authentication is succesful
         run_server_thread = threading.Thread(target=run_server)
         run_server_thread.daemon = True
         run_server_thread.start()
@@ -75,11 +77,13 @@ def authenticate(username: str, password: str) -> None:
         print("[Warning] Password doesn't match username.")
 
 
+# function that closes the registration window and opens the sign in window
 def go_back_to_sign_in():
     registration_window.destroy()
     open_sign_in()
 
 
+# function that closes the proxy and saves the global variables
 def exit_script():
     print("[INFO] Server is terminating...")
     caching.save_globals()

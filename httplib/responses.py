@@ -92,6 +92,7 @@ class Response:
         self.upgrade_insecure_requests = None
         self.content_security_policy_report_only = {}
         self.feature_policy = {}
+        self.via = None
         # ------cookie related fields------
         self.set_cookie = set()
         # ------safety-mechanism: any unrecognized field is maintained------

@@ -34,8 +34,9 @@ Extra Features:
   - a maximum of 5 connections per host at a time
   - a maximum of 10 hosts using the server at the same time
 - Implemented a graphical user interface that displays all required and additional information.
-- To secure and access the GUI, users must create an account and authenticate their sign in which is done using a secure hashing system.
+- To secure and access the GUI, administrators must create an account and authenticate their sign in which is done using a secure hashing system.
 - Users can choose to run the proxy server as well as exist and terminate the proxy server without the need for terminal/cmd interference.
-- Handle all 4 main commands: GET, POST, PUT, HEAD
-- Handle all file types: html, gif, css
-- Handling all cases of cache control: 
+- Handle all file types, ex: html, gif, css, any binary object.
+- Handling cases of cache control: no-cache, no-store.
+- Handling all reception types: chunked, with content length, with nothing => timeout w hal 5bar
+- 
