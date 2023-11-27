@@ -21,8 +21,10 @@ Resources:
 
 Steps followed:
 1) We created our own http library where we created the 2 classes Request and Response that parse the http requests and responses into Request and Responses objects to be able to manipulate them.
-2) We created a caching system.
-3) We created the user interface using tkinter, customtkinter libraries.
+2) We received requests and responses in all the possible ways in which HTTP sends information (direct way, as in old browsers; content-length; chunked transfer)
+3) We created an LRU caching system, which saves all caching on disk and also deletes least recently used data once needed.
+4) We implemented basic security features, such as: blacklisting hosts, blacklisting clients, access to websites which are protected by a password
+5) We created the user interface using tkinter, customtkinter libraries.
 
 Extra Features:
 - Complete and fail-proof parsing of request headers and response headers into Request and Response header objects with most header fields found in modern and old http requests with their correct corresponsing types. The reason is for easier reception and manipulation of different forms of requests and responses as well as changing the headers of these requests and responses.

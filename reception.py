@@ -6,7 +6,14 @@ from httplib.responses import parse as parse_response
 
 BUFFER = 2 << 11
 INITIAL_LENGTH = 2 << 13
-TIMEOUT = 2
+
+
+timeout = 2
+
+
+def set_timeout(val: float):
+    global timeout
+    timeout = val
 
 
 def get_data_from_chunked(bytestream: bytes, trailer: bool = False) -> (bytes, bool, bytes):
@@ -84,7 +91,7 @@ def recv_all(sock: socket.socket, request: bool = True):
         print("[INFO] Timed out.")
         return None, None
     if initial_bytestream:
-        sock.settimeout(TIMEOUT)
+        sock.settimeout(timeout)
         header, initial_data = get_initial_data_bytestream(initial_bytestream)
         # get request/response obj
         if request:
