@@ -23,7 +23,7 @@ Steps followed:
 1) We created our own http library where we created the 2 classes Request and Response that parse the http requests and responses into Request and Responses objects to be able to manipulate them.
 2) We received requests and responses in all the possible ways in which HTTP sends information (direct way, as in old browsers; content-length; chunked transfer)
 3) We created an LRU caching system, which saves all caching on disk and also deletes least recently used data once needed.
-4) We implemented basic security features, such as: blacklisting hosts, blacklisting clients, access to websites which are protected by a password
+4) We implemented basic security features, such as: blacklisting hosts, blacklisting clients, access to websites which are protected by a password.
 5) We created the user interface using tkinter, customtkinter libraries.
 
 Extra Features:
@@ -31,14 +31,13 @@ Extra Features:
 - Users can send HTTP requests directly from browsers and without the need for a client side.
 - Caching directly onto computer disk and persisting the cache between proxy sessions.
 - Implementing the Least Recently Used (LRU) algorithm using a minimum-heap and a dictionary for fast efficient caching.
-- Limitations and accomodations of implementations:
+- Limitations and accommodations of implementations:
   - a maximum of 50 global concurrent connections at a time 
   - a maximum of 5 connections per host at a time
   - a maximum of 10 hosts using the server at the same time
 - Implemented a graphical user interface that displays all required and additional information.
 - To secure and access the GUI, administrators must create an account and authenticate their sign in which is done using a secure hashing system.
-- Users can choose to run the proxy server as well as exist and terminate the proxy server without the need for terminal/cmd interference.
+- Admins can choose to run the proxy server as well as exist and terminate the proxy server without the need for terminal/cmd interference.
 - Handle all file types, ex: html, gif, css, any binary object.
 - Handling cases of cache control: no-cache, no-store.
-- Handling all reception types: chunked, with content length, with nothing => timeout w hal 5bar
-- 
+- Handling all reception types: chunked, with content length, timeout default case.

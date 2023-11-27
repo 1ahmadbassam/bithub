@@ -1,6 +1,8 @@
 from httplib import http
 
-
+'''
+    Response class with helping functions to parse and represent the HTTP response. Fail proof method that parses HTTP response fields thanks to other field.
+'''
 class Response:
 
     def __init__(self, status_code: int, status_phrase: str, http_ver: http.Version = http.Version.HTTP1) -> None:

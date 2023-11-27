@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 from httplib import http
 
-
+'''
+    Request class with helping functions to parse and represent the HTTP request. Fail proof method that parses HTTP request fields thanks to other field.
+'''
 class Request:
     @dataclass(frozen=True, slots=True)
     class Command:

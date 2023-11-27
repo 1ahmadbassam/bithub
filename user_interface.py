@@ -27,24 +27,33 @@ class ConsoleRedirector:
 
 
 def hash_credentials(credentials):
-    hash_object = hashlib.sha256()
-    hash_object.update(credentials.encode())
-    return hash_object.hexdigest()
+    '''
+        Hash the credentials using SHA256.
+    '''
+    hash_object = hashlib.sha256() # create a hash object
+    hash_object.update(credentials.encode()) # update the hash object with the credentials
+    return hash_object.hexdigest() # return the hex digest of the hash object
 
 
 def save_hashed_credentials():
-    os.makedirs(ADMINISTRATOR_DIRECTIVE, exist_ok=True)
-    with open(ADMINISTRATOR_FILE, "wb") as file:
-        file.write(pickle.dumps(users))
-    print("[INFO] Saved administrator credentials.")
+    '''
+        Save the hashed credentials to disk.
+    '''
+    os.makedirs(ADMINISTRATOR_DIRECTIVE, exist_ok=True) # create the security directory if it doesn't exist
+    with open(ADMINISTRATOR_FILE, "wb") as file: # wb = write binary
+        file.write(pickle.dumps(users)) # write the hashed credentials to disk
+    print("[INFO] Saved administrator credentials.") # print a message to inform
 
 
 def load_hashed_credentials():
+    '''
+        Load the hashed credentials from disk.
+    '''
     global users
-    if os.path.exists(ADMINISTRATOR_FILE):
-        with open(ADMINISTRATOR_FILE, "rb") as file:
-            users = pickle.loads(file.read())
-
+    if os.path.exists(ADMINISTRATOR_FILE): # check if the file exists
+        with open(ADMINISTRATOR_FILE, "rb") as file: # rb = read binary
+            users = pickle.loads(file.read()) # read the hashed credentials from disk
+ 
 # a function that creates a new account
 def create_new_account(username: str, password: str) -> bool:
     global registration_window
