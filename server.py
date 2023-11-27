@@ -116,6 +116,7 @@ def handle_client(conn: socket.socket, addr: str, users_ip: dict) -> None:
                 resp.content_length = len(obj)
                 print(resp)
                 conn.send(str(resp).encode(http.Charset.ASCII) + obj)
+                print(f"[INFO] Sent a response to {addr[0]} at {http.get_date_string(datetime.now())}")
                 break
             elif req.host in security.SECURED_WEBSITES and req.proxy_authorization:
                 # if the desired website is secured (e.g. intranet website),
@@ -133,6 +134,7 @@ def handle_client(conn: socket.socket, addr: str, users_ip: dict) -> None:
                     resp.proxy_authenticate = 'Basic realm="This website is protected"'
                     print(resp)
                     conn.send(str(resp).encode(http.Charset.ASCII))
+                    print(f"[INFO] Sent a response to {addr[0]} at {http.get_date_string(datetime.now())}")
                     break
             elif req.host in security.SECURED_WEBSITES:
                 # send a 407 response to ask for credentials if they are not found or invalid
@@ -141,6 +143,7 @@ def handle_client(conn: socket.socket, addr: str, users_ip: dict) -> None:
                 resp.proxy_authenticate = 'Basic realm="This website is protected"'
                 print(resp)
                 conn.send(str(resp).encode(http.Charset.ASCII))
+                print(f"[INFO] Sent a response to {addr[0]} at {http.get_date_string(datetime.now())}")
                 break
             if not client_to_origin or (start_time and time.time() - start_time < timeout):
                 # timeout occurred, be sure to close the socket to prevent sending issues
@@ -232,6 +235,26 @@ def run_server():
             conn_thread.start()
 
 
+def exit_script():
+    try:
+        while True:
+            inp = input("[INFO] Type 'exit' to exit\n")
+            if inp.strip().lower() == "exit":
+                print("[INFO] Server is terminating...")
+                break
+    except KeyboardInterrupt:
+        pass
+    caching.save_globals()
+    exit(0)
+
+
+def run():
+    server_thread = threading.Thread(target=run_server)
+    server_thread.daemon = True
+    server_thread.start()
+    exit_script()
+
+
 if __name__ == "__main__":
     # run command-line based version of the server if this file is executed
-    run_server()
+    run()
